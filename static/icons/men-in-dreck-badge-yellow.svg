@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Gelber Hintergrundkreis -->
+  <circle cx="256" cy="256" r="240" fill="#FFD400" stroke="#000000" stroke-width="24"/>
+
+  <!-- Schwarzer Text: M I D -->
+  <text x="50%" y="50%" text-anchor="middle" fill="#000000"
+        font-family="Arial Black, sans-serif"
+        font-size="72" dy="24">
+    M I D
+  </text>
+
+  <!-- Untertitel -->
+  <text x="50%" y="50%" text-anchor="middle" fill="#000000"
+        font-family="Arial Black, sans-serif"
+        font-size="28" dy="80">
+    MEN IN DRECK
+  </text>
+
+</svg>

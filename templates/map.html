@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mb-4">Karte mit Bildern</h1>
+
+<div id="map" style="height:600px;"></div>
+
+<script id="images-data" type="application/json">
+{{ images | tojson }}
+</script>
+
+<script>
+    const images = JSON.parse(document.getElementById('images-data').textContent);
+
+    const menInDreckBadge = L.icon({
+    iconUrl: "/static/icons/men-in-dreck-badge.svg",
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
+    popupAnchor: [0, -48]
+});
+
+
+
+const menInDreckHelmetBadge = L.icon({
+    iconUrl: "/static/icons/men-in-dreck-helmet.svg",
+    iconSize: [48, 48],
+    iconAnchor: [24, 48],
+    popupAnchor: [0, -48]
+});
+
+
+
+
+    const map = L.map('map').setView([51.1657, 10.4515], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    images.forEach(img => {
+        const name = img[1] || "";
+        const description = img[2] || "";
+        const category = img[3] || "";
+        const filepath = img[4] || "";
+        let lat = img[5];
+        let lon = img[6];
+
+        if (!lat || isNaN(lat)) lat = 51.1657;
+        if (!lon || isNaN(lon)) lon = 10.4515;
+
+        const marker = L.marker([lat, lon], { icon: menInDreckHelmetBadge }).addTo(map);
+
+        marker.bindPopup(
+            `<b>${name}</b><br>
+            Kategorie: ${category}<br>
+            ${description}<br>
+            <img src="${filepath}" width="150" class="mt-2 rounded">`
+        );
+    });
+</script>
+{% endblock %}

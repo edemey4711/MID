@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="mb-4 fw-bold">Bild bearbeiten</h1>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <form method="POST">
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Name</label>
+                <input class="form-control" type="text" name="name" value="{{ image[1] }}" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Beschreibung</label>
+                <textarea class="form-control" name="description" rows="3">{{ image[2] }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Kategorie</label>
+                <input class="form-control" type="text" name="category" value="{{ image[3] }}">
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Latitude</label>
+                    <input class="form-control" type="text" name="lat" value="{{ image[5] }}">
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Longitude</label>
+                    <input class="form-control" type="text" name="lng" value="{{ image[6] }}">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Aktuelles Bild</label><br>
+                <img src="/{{ image[4] }}" style="max-width:200px;" class="rounded shadow-sm">
+            </div>
+
+            <button class="btn btn-dark fw-bold px-4">Speichern</button>
+
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

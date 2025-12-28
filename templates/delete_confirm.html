@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="mb-4 fw-bold">Bild löschen</h1>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <p class="mb-3">Möchtest du dieses Bild wirklich löschen?</p>
+
+        <img src="/{{ filepath }}" style="max-width:200px;" class="rounded shadow-sm mb-3">
+
+        <form method="POST">
+            <button class="btn btn-danger fw-bold">Ja, löschen</button>
+            <a href="{{ url_for('gallery') }}" class="btn btn-secondary">Abbrechen</a>
+        </form>
+
+    </div>
+</div>
+
+{% endblock %}

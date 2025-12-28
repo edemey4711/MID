@@ -1,0 +1,64 @@
+{% extends "base.html" %} {% block content %}
+
+<h1 class="mb-4 fw-bold">Galerie</h1>
+
+<div class="card shadow-sm">
+  <div class="card-body table-responsive">
+    <table class="table table-striped align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Vorschau</th>
+          <th>Name</th>
+          <th>Kategorie</th>
+          <th>Beschreibung</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Aktion</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for img in images %}
+        <tr>
+          <td>{{ img[0] }}</td>
+
+          <td>
+            <img
+              src="/{{ img[4] }}"
+              style="height: 60px"
+              class="rounded shadow-sm"
+            />
+          </td>
+
+          <td>{{ img[1] }}</td>
+          <td>{{ img[3] }}</td>
+          <td>{{ img[2] }}</td>
+          <td>{{ img[5] }}</td>
+          <td>{{ img[6] }}</td>
+
+          <td>
+            <a
+              href="{{ url_for('detail', image_id=img[0]) }}"
+              class="btn btn-sm btn-primary me-1"
+              >Details</a
+            >
+            <a
+              href="{{ url_for('edit', image_id=img[0]) }}"
+              class="btn btn-sm btn-dark"
+              >Bearbeiten</a
+            >
+            <a
+              href="{{ url_for('delete', image_id=img[0]) }}"
+              class="btn btn-sm btn-danger ms-1"
+              >Löschen</a
+            >
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
