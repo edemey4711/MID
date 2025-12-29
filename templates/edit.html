@@ -19,9 +19,15 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label fw-semibold">Kategorie</label>
-                <input class="form-control" type="text" name="category" value="{{ image[3] }}">
+            <label for="category" class="form-label fw-bold">Kategorie</label>
+                <select class="form-select" id="category" name="category" required>
+                    <option value="Burg" {{ 'selected' if image[3] == 'Burg' else '' }}>Burg</option>
+                    <option value="Fels" {{ 'selected' if image[3] == 'Fels' else '' }}>Fels</option>
+                    <option value="Kirche" {{ 'selected' if image[3] == 'Kirche' else '' }}>Kirche</option>
+                    <option value="Aussicht" {{ 'selected' if image[3] == 'Aussicht' else '' }}>Aussicht</option>
+                </select>
             </div>
+
 
             <div class="row">
                 <div class="col-md-6 mb-3">

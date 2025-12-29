@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Hintergrund-Kreis -->
+  <circle cx="32" cy="32" r="30" fill="#FFC800" stroke="#111111" stroke-width="3"/>
+
+  <!-- Kirchenschiff -->
+  <rect x="18" y="30" width="28" height="16" fill="#111111"/>
+
+  <!-- Turm -->
+  <rect x="26" y="18" width="12" height="12" fill="#111111"/>
+
+  <!-- Dach -->
+  <polygon points="18,30 32,20 46,30" fill="#111111"/>
+
+  <!-- Kreuz -->
+  <rect x="30.5" y="11" width="3" height="9" fill="#111111"/>
+  <rect x="27" y="14" width="9" height="3" fill="#111111"/>
+
+  <!-- Tür -->
+  <rect x="29" y="34" width="6" height="10" fill="#FFC800"/>
+</svg>

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Hintergrund-Kreis -->
+  <circle cx="32" cy="32" r="30" fill="#FFC800" stroke="#111111" stroke-width="3"/>
+
+  <!-- Horizont / Berge -->
+  <polygon points="10,40 22,26 32,36 40,24 54,40" fill="#111111"/>
+
+  <!-- Sonne -->
+  <circle cx="40" cy="20" r="6" fill="#FFC800" stroke="#111111" stroke-width="2"/>
+
+  <!-- Blickplattform / Geländer -->
+  <rect x="14" y="40" width="36" height="3" fill="#111111"/>
+  <rect x="18" y="36" width="2" height="7" fill="#111111"/>
+  <rect x="24" y="36" width="2" height="7" fill="#111111"/>
+  <rect x="30" y="36" width="2" height="7" fill="#111111"/>
+  <rect x="36" y="36" width="2" height="7" fill="#111111"/>
+  <rect x="42" y="36" width="2" height="7" fill="#111111"/>
+</svg>

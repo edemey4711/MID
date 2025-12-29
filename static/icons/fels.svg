@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Hintergrund-Kreis -->
+  <circle cx="32" cy="32" r="30" fill="#FFC800" stroke="#111111" stroke-width="3"/>
+
+  <!-- Felsformation: mehrere kantige Polygone -->
+  <polygon points="14,40 24,22 34,26 28,44" fill="#111111"/>
+  <polygon points="26,44 34,24 46,28 42,46" fill="#111111"/>
+  <polygon points="20,44 28,30 36,34 32,48" fill="#222222"/>
+
+  <!-- Bodenlinie -->
+  <rect x="12" y="46" width="40" height="3" fill="#111111"/>
+</svg>

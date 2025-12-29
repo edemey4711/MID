@@ -1,39 +1,45 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 
 <h1 class="mb-4 fw-bold">Bild hochladen</h1>
 
 <div class="card shadow-sm">
-    <div class="card-body">
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Name</label>
+        <input class="form-control" type="text" name="name" required />
+      </div>
 
-        <form method="POST" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Beschreibung</label>
+        <textarea class="form-control" name="description" rows="3"></textarea>
+      </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Name</label>
-                <input class="form-control" type="text" name="name" required>
-            </div>
+      <div class="mb-3">
+        <label for="category" class="form-label fw-bold">Kategorie</label>
+        <select class="form-select" id="category" name="category" required>
+          <option value="">Bitte wählen…</option>
+          <option value="Burg">Burg</option>
+          <option value="Fels">Fels</option>
+          <option value="Kirche">Kirche</option>
+          <option value="Aussicht">Aussicht</option>
+        </select>
+      </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Beschreibung</label>
-                <textarea class="form-control" name="description" rows="3"></textarea>
-            </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Bild</label>
+        <input
+          class="form-control"
+          type="file"
+          name="image"
+          accept="image/*"
+          required
+        />
+      </div>
 
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Kategorie</label>
-                <input class="form-control" type="text" name="category"
-                       placeholder="z.B. Trail, Spot, Urlaub">
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Bild</label>
-                <input class="form-control" type="file" name="image" accept="image/*" required>
-            </div>
-
-            <button class="btn btn-dark fw-bold px-4">Hochladen</button>
-
-        </form>
-
-    </div>
+      <button class="btn btn-dark fw-bold px-4">Hochladen</button>
+    </form>
+  </div>
 </div>
 
 {% endblock %}

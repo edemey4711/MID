@@ -11,6 +11,8 @@ pillow_heif.register_heif_opener()
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+ALLOWED_CATEGORIES = ["Burg", "Fels", "Kirche", "Aussicht"]
+
 
 
 
@@ -106,9 +108,13 @@ init_db()
 def upload():
     if request.method == 'POST':
         name = request.form['name']
-        description = request.form['description']
-        category = request.form['category']
+        description = request.form['description']        
+        category = request.form['category']        
+        if category not in ALLOWED_CATEGORIES:
+            return "Ungültige Kategorie", 400
+
         image = request.files['image']
+
 
         if image:
             filename = secure_filename(image.filename)
@@ -179,7 +185,7 @@ def upload():
             conn = sqlite3.connect('database.db')
             c = conn.cursor()
             c.execute(
-                "INSERT INTO images (name, description, category, filepath, lat, lng) VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO images (name, description, category, filepath, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?)",
                 (name, description, category, path, lat, lon)
             )
             conn.commit()
@@ -195,7 +201,7 @@ def upload():
 def map():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT id, name, description, category, filepath, lat, lng FROM images")
+    c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images")
     images = c.fetchall()
     conn.close()
     return render_template('map.html', images=images, title="Karte")
@@ -204,7 +210,7 @@ def map():
 def gallery():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT id, name, description, category, filepath, lat, lng FROM images")
+    c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images")
     images = c.fetchall()
     conn.close()
     return render_template('gallery.html', images=images, title="Galerie")
@@ -218,6 +224,9 @@ def edit(image_id):
         name = request.form['name']
         description = request.form['description']
         category = request.form['category']
+        if category not in ALLOWED_CATEGORIES:
+            return "Ungültige Kategorie", 400
+
         lat = request.form['lat']
         lng = request.form['lng']
 

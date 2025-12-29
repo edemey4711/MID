@@ -45,6 +45,41 @@
         popupAnchor: [0, -48]
     });
 
+    const categoryIcons = {
+    "Burg": L.icon({
+        iconUrl: "/static/icons/burg.svg",
+        iconSize: [48, 48],
+        iconAnchor: [24, 48],
+        popupAnchor: [0, -48]
+    }),
+    "Fels": L.icon({
+        iconUrl: "/static/icons/fels.svg",
+        iconSize: [48, 48],
+        iconAnchor: [24, 48],
+        popupAnchor: [0, -48]
+    }),
+    "Kirche": L.icon({
+        iconUrl: "/static/icons/kirche.svg",
+        iconSize: [48, 48],
+        iconAnchor: [24, 48],
+        popupAnchor: [0, -48]
+    }),
+    "Aussicht": L.icon({
+        iconUrl: "/static/icons/aussicht.svg",
+        iconSize: [48, 48],
+        iconAnchor: [24, 48],
+        popupAnchor: [0, -48]
+    })
+};
+
+// Fallback-Icon
+    const defaultIcon = L.icon({
+        iconUrl: "/static/icons/default.svg",
+        iconSize: [48, 48],
+        iconAnchor: [24, 48],
+        popupAnchor: [0, -48]
+    });
+
     const map = L.map('map').setView([51.1657, 10.4515], 6);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -62,7 +97,8 @@
         if (!lat || isNaN(lat)) lat = 51.1657;
         if (!lon || isNaN(lon)) lon = 10.4515;
 
-        const marker = L.marker([lat, lon], { icon: menInDreckHelmetBadge }).addTo(map);
+        const icon = categoryIcons[category] || defaultIcon;
+        const marker = L.marker([lat, lon], { icon }).addTo(map);
 
         marker.bindPopup(`
             <b>${name}</b><br>

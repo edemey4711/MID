@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Hintergrund-Kreis -->
+  <circle cx="32" cy="32" r="30" fill="#FFC800" stroke="#111111" stroke-width="3"/>
+
+  <!-- Einfaches Fragezeichen als Fallback -->
+  <path d="M32 18
+           C27 18 24 21 24 25
+           L28 25
+           C28 23 29.5 22 32 22
+           C34.5 22 36 23.3 36 25.5
+           C36 27.4 35 28.5 33.3 29.6
+           C31.4 30.8 30 32 30 35
+           L30 37
+           L34 37
+           L34 35.8
+           C34 33.9 35 32.9 36.6 31.9
+           C38.7 30.6 40 28.7 40 25.5
+           C40 21.2 36.8 18 32 18Z"
+        fill="#111111"/>
+
+  <circle cx="32" cy="44" r="3" fill="#111111"/>
+</svg>
