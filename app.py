@@ -4,9 +4,15 @@ from flask import Flask, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
+import pillow_heif
+from PIL import ImageOps
+
+pillow_heif.register_heif_opener()
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+
 
 # --- EXIF Hilfsfunktionen ---
 def get_exif_data(image):
@@ -106,26 +112,64 @@ def upload():
 
         if image:
             filename = secure_filename(image.filename)
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            image.save(path)
+            ext = filename.rsplit('.', 1)[-1].lower()
 
-            # EXIF auslesen
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+            # Zielpfad (wird ggf. zu JPG geändert)
+            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+            # exif_data IMMER initialisieren
+            exif_data = {}
             lat, lon = None, None
+
+            # --- HEIC / HEIF Verarbeitung ---
+            if ext in ["heic", "heif"]:
+                heif_file = pillow_heif.read_heif(image.read())
+
+                pil_img = Image.frombytes(
+                    heif_file.mode,
+                    heif_file.size,
+                    heif_file.data,
+                    "raw"
+                )
+
+                pil_img = ImageOps.exif_transpose(pil_img)
+
+                # EXIF aus HEIC holen (falls vorhanden)
+                exif_bytes = heif_file.info.get("exif", None)
+
+                # JPG-Dateiname erzeugen
+                filename = filename.rsplit('.', 1)[0] + ".jpg"
+                path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+                # JPG speichern (mit EXIF falls vorhanden)
+                if exif_bytes:
+                    pil_img.save(path, "JPEG", quality=95, exif=exif_bytes)
+                else:
+                    pil_img.save(path, "JPEG", quality=95)
+
+            else:
+                # Normale Bilder speichern
+                image.save(path)
+
+            # --- EXIF EINHEITLICH aus JPG auslesen ---
             try:
-                pil_img = Image.open(path)
-                exif_data = get_exif_data(pil_img)
+                pil_img_for_exif = Image.open(path)
+                exif_data = get_exif_data(pil_img_for_exif)
                 lat, lon = get_lat_lon(exif_data)
             except Exception:
-                pass
+                exif_data = {}
+                lat, lon = None, None
 
+            # Debug
             print("---- DEBUG ----")
             print("Datei:", path)
             print("EXIF GPSInfo:", exif_data.get("GPSInfo", None))
             print("Berechnete Koordinaten:", lat, lon)
             print("---------------")
 
-            # Standardwerte setzen, falls keine Koordinaten vorhanden
+            # Standardwerte setzen
             if lat is None:
                 lat = 51.1657
             if lon is None:
@@ -242,4 +286,4 @@ def detail(image_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

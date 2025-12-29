@@ -1,8 +1,35 @@
 {% extends "base.html" %}
+{% set fullscreen = true %}
 {% block content %}
-<h1 class="mb-4">Karte mit Bildern</h1>
 
-<div id="map" style="height:600px;"></div>
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Karte soll den gesamten Bildschirm einnehmen */
+    #map {
+        position: absolute;
+        top: 56px; /* Höhe der Navbar */
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: calc(100% - 56px);
+        margin: 0;
+        padding: 0;
+        z-index: 1; /* Karte unter Navbar */
+    }
+
+    /* iPhone Safari Fix */
+    body {
+        overflow: hidden;
+    }
+</style>
+
+<div id="map"></div>
 
 <script id="images-data" type="application/json">
 {{ images | tojson }}
@@ -11,27 +38,18 @@
 <script>
     const images = JSON.parse(document.getElementById('images-data').textContent);
 
-    const menInDreckBadge = L.icon({
-    iconUrl: "/static/icons/men-in-dreck-badge.svg",
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
-    popupAnchor: [0, -48]
-});
-
-
-
-const menInDreckHelmetBadge = L.icon({
-    iconUrl: "/static/icons/men-in-dreck-helmet.svg",
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
-    popupAnchor: [0, -48]
-});
-
-
-
+    const menInDreckHelmetBadge = L.icon({
+        iconUrl: "/static/icons/men-in-dreck-helmet.svg",
+        iconSize: [48, 48],
+        iconAnchor: [24, 48],
+        popupAnchor: [0, -48]
+    });
 
     const map = L.map('map').setView([51.1657, 10.4515], 6);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+    }).addTo(map);
 
     images.forEach(img => {
         const name = img[1] || "";
@@ -46,12 +64,13 @@ const menInDreckHelmetBadge = L.icon({
 
         const marker = L.marker([lat, lon], { icon: menInDreckHelmetBadge }).addTo(map);
 
-        marker.bindPopup(
-            `<b>${name}</b><br>
+        marker.bindPopup(`
+            <b>${name}</b><br>
             Kategorie: ${category}<br>
             ${description}<br>
-            <img src="${filepath}" width="150" class="mt-2 rounded">`
-        );
+            <img src="${filepath}" width="150" class="mt-2 rounded">
+        `);
     });
 </script>
+
 {% endblock %}
