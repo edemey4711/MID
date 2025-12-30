@@ -232,7 +232,7 @@ def edit(image_id):
 
         c.execute("""
             UPDATE images
-            SET name = ?, description = ?, category = ?, lat = ?, lng = ?
+            SET name = ?, description = ?, category = ?, latitude = ?, longitude = ?
             WHERE id = ?
         """, (name, description, category, lat, lng, image_id))
 
@@ -241,7 +241,7 @@ def edit(image_id):
         return redirect(url_for('map'))
 
     # GET → Daten laden
-    c.execute("SELECT id, name, description, category, filepath, lat, lng FROM images WHERE id = ?", (image_id,))
+    c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images WHERE id = ?", (image_id,))
     image = c.fetchone()
     conn.close()
 
@@ -284,7 +284,7 @@ def delete(image_id):
 def detail(image_id):
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT id, name, description, category, filepath, lat, lng FROM images WHERE id = ?", (image_id,))
+    c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images WHERE id = ?", (image_id,))
     img = c.fetchone()
     conn.close()
 
