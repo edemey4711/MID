@@ -106,6 +106,14 @@
   {{ images | tojson }}
 </script>
 
+<!-- Leaflet MarkerCluster CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+
+<!-- Leaflet MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+
 <script>
   const images = JSON.parse(document.getElementById("images-data").textContent);
 
@@ -152,6 +160,8 @@
   });
 
   const map = L.map("map").setView([51.1657, 10.4515], 6);
+  const markerCluster = L.markerClusterGroup();
+
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -174,8 +184,9 @@
 
     const marker = L.marker([lat, lon], { icon });
     marker.category = category; // Kategorie speichern
-    marker.addTo(map);
+    markerCluster.addLayer(marker);
     markers.push(marker);
+
 
     marker.bindPopup(`
             <b>${name}</b><br>
@@ -185,19 +196,21 @@
         `);
   });
 
-  document
-    .getElementById("category-select")
-    .addEventListener("change", function () {
-      const selected = this.value;
+  map.addLayer(markerCluster);
 
-      markers.forEach((marker) => {
+
+  document.getElementById("category-select").addEventListener("change", function() {
+    const selected = this.value;
+
+    markers.forEach(marker => {
         if (selected === "Alle" || marker.category === selected) {
-          marker.addTo(map);
+            markerCluster.addLayer(marker);
         } else {
-          map.removeLayer(marker);
+            markerCluster.removeLayer(marker);
         }
-      });
     });
+});
+
 
 </script>
 
