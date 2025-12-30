@@ -37,14 +37,20 @@
   }
 
   /* Schwebende Animation */
-@keyframes float {
-    0%   { transform: translateX(-50%) translateY(0); }
-    50%  { transform: translateX(-50%) translateY(-3px); }
-    100% { transform: translateX(-50%) translateY(0); }
-}
+  @keyframes float {
+    0% {
+      transform: translateX(-50%) translateY(0);
+    }
+    50% {
+      transform: translateX(-50%) translateY(-3px);
+    }
+    100% {
+      transform: translateX(-50%) translateY(0);
+    }
+  }
 
-/* Filter-Box Position + Animation */
-.filter-box {
+  /* Filter-Box Position + Animation */
+  .filter-box {
     position: absolute;
     top: 60px;
     left: 50%;
@@ -52,14 +58,13 @@
     z-index: 9999;
 
     animation: float 3s ease-in-out infinite;
-}
+  }
 
-@media (hover: hover) {
+  @media (hover: hover) {
     .filter-box:hover {
-        transform: translateX(-50%) scale(1.03);
+      transform: translateX(-50%) scale(1.03);
     }
-}
-
+  }
 
   /* Pill-Select (Option B) */
   .pill-select {
@@ -107,12 +112,17 @@
 </script>
 
 <!-- Leaflet MarkerCluster CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"
+/>
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"
+/>
 
 <!-- Leaflet MarkerCluster JS -->
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-
 
 <script>
   const images = JSON.parse(document.getElementById("images-data").textContent);
@@ -162,7 +172,6 @@
   const map = L.map("map").setView([51.1657, 10.4515], 6);
   const markerCluster = L.markerClusterGroup();
 
-
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
   }).addTo(map);
@@ -187,31 +196,34 @@
     markerCluster.addLayer(marker);
     markers.push(marker);
 
-
     marker.bindPopup(`
-            <b>${name}</b><br>
-            Kategorie: ${category}<br>
-            ${description}<br>
-            <img src="${filepath}" width="150" class="mt-2 rounded">
-        `);
+      <div style="max-width:200px">
+          <h5 class="fw-bold mb-1">${name}</h5>
+          <span class="badge bg-warning text-dark mb-2">${category}</span>
+          <p>${description}</p>
+          <img src="${filepath}" class="img-fluid rounded mb-2">
+          <a href="/detail/${img[0]}" class="btn btn-warning btn-sm w-100">Details ansehen</a>
+      </div>
+  `);
+
+
   });
 
   map.addLayer(markerCluster);
 
+  document
+    .getElementById("category-select")
+    .addEventListener("change", function () {
+      const selected = this.value;
 
-  document.getElementById("category-select").addEventListener("change", function() {
-    const selected = this.value;
-
-    markers.forEach(marker => {
+      markers.forEach((marker) => {
         if (selected === "Alle" || marker.category === selected) {
-            markerCluster.addLayer(marker);
+          markerCluster.addLayer(marker);
         } else {
-            markerCluster.removeLayer(marker);
+          markerCluster.removeLayer(marker);
         }
+      });
     });
-});
-
-
 </script>
 
 {% endblock %}
