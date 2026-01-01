@@ -6,6 +6,7 @@ from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import pillow_heif
 from PIL import ImageOps
+from datetime import datetime
 
 pillow_heif.register_heif_opener()
 
@@ -83,20 +84,47 @@ def get_lat_lon(exif_data):
         return None, None
 
 
-# --- Datenbank initialisieren ---
+# --- Datenbank initialisieren (erzeugt oder migriert bei Bedarf) ---
 def init_db():
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
+
+    # Erzeuge die Tabelle mit dem kanonischen Schema, falls sie nicht existiert
     c.execute('''CREATE TABLE IF NOT EXISTS images (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
         category TEXT,
         filepath TEXT NOT NULL,
-        lat REAL,
-        lng REAL,
+        latitude REAL,
+        longitude REAL,
+        upload_date TEXT,
+        upload_time TEXT,
+        exif_date TEXT,
+        exif_time TEXT,
         uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )''')
+    conn.commit()
+
+    # Falls die Tabelle aus einer älteren Version vorhanden ist, fügen wir fehlende Spalten hinzu
+    existing_cols = [row[1] for row in c.execute("PRAGMA table_info(images)").fetchall()]
+    needed = {
+        "latitude": "REAL",
+        "longitude": "REAL",
+        "upload_date": "TEXT",
+        "upload_time": "TEXT",
+        "exif_date": "TEXT",
+        "exif_time": "TEXT",
+    }
+
+    for col, coltype in needed.items():
+        if col not in existing_cols:
+            try:
+                c.execute(f"ALTER TABLE images ADD COLUMN {col} {coltype}")
+            except Exception:
+                # Best effort: falls ALTER TABLE fehlschlägt, fahren wir fort
+                pass
+
     conn.commit()
     conn.close()
 
@@ -108,28 +136,29 @@ init_db()
 def upload():
     if request.method == 'POST':
         name = request.form['name']
-        description = request.form['description']        
-        category = request.form['category']        
+        if not name: 
+            return "Bitte einen Namen eingeben.", 400
+        description = request.form['description']
+        category = request.form['category']
+
         if category not in ALLOWED_CATEGORIES:
             return "Ungültige Kategorie", 400
 
         image = request.files['image']
-
 
         if image:
             filename = secure_filename(image.filename)
             ext = filename.rsplit('.', 1)[-1].lower()
 
             os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-            # Zielpfad (wird ggf. zu JPG geändert)
             path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
-            # exif_data IMMER initialisieren
             exif_data = {}
             lat, lon = None, None
+            exif_date = None
+            exif_time = None
 
-            # --- HEIC / HEIF Verarbeitung ---
+            # --- HEIC / HEIF ---
             if ext in ["heic", "heif"]:
                 heif_file = pillow_heif.read_heif(image.read())
 
@@ -139,61 +168,69 @@ def upload():
                     heif_file.data,
                     "raw"
                 )
-
                 pil_img = ImageOps.exif_transpose(pil_img)
 
-                # EXIF aus HEIC holen (falls vorhanden)
                 exif_bytes = heif_file.info.get("exif", None)
 
-                # JPG-Dateiname erzeugen
                 filename = filename.rsplit('.', 1)[0] + ".jpg"
                 path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
-                # JPG speichern (mit EXIF falls vorhanden)
                 if exif_bytes:
                     pil_img.save(path, "JPEG", quality=95, exif=exif_bytes)
                 else:
                     pil_img.save(path, "JPEG", quality=95)
 
             else:
-                # Normale Bilder speichern
                 image.save(path)
 
-            # --- EXIF EINHEITLICH aus JPG auslesen ---
+            # --- EXIF aus JPG auslesen ---
             try:
                 pil_img_for_exif = Image.open(path)
                 exif_data = get_exif_data(pil_img_for_exif)
                 lat, lon = get_lat_lon(exif_data)
+
+                # EXIF Datum/Zeit auslesen
+                if "DateTimeOriginal" in exif_data:
+                    dt = exif_data["DateTimeOriginal"]  # Format: "2023:08:15 14:32:10"
+                    try:
+                        exif_date, exif_time = dt.split(" ")
+                        exif_date = exif_date.replace(":", "-")  # schöneres Format
+                    except:
+                        exif_date = None
+                        exif_time = None
+
             except Exception:
                 exif_data = {}
                 lat, lon = None, None
 
-            # Debug
-            print("---- DEBUG ----")
-            print("Datei:", path)
-            print("EXIF GPSInfo:", exif_data.get("GPSInfo", None))
-            print("Berechnete Koordinaten:", lat, lon)
-            print("---------------")
-
-            # Standardwerte setzen
+            # Fallback Koordinaten
             if lat is None:
                 lat = 51.1657
             if lon is None:
                 lon = 10.4515
 
-            # In DB speichern
+            # --- Upload Datum/Zeit ---
+            now = datetime.now()
+            upload_date = now.strftime("%Y-%m-%d")
+            upload_time = now.strftime("%H:%M:%S")
+
+            # --- In DB speichern ---
             conn = sqlite3.connect('database.db')
             c = conn.cursor()
-            c.execute(
-                "INSERT INTO images (name, description, category, filepath, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?)",
-                (name, description, category, path, lat, lon)
-            )
+            c.execute("""
+                INSERT INTO images 
+                (name, description, category, filepath, latitude, longitude,
+                 upload_date, upload_time, exif_date, exif_time)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (name, description, category, path, lat, lon,
+                  upload_date, upload_time, exif_date, exif_time))
             conn.commit()
             conn.close()
 
         return redirect(url_for('map'))
 
     return render_template('upload.html', title="Bild hochladen")
+
 
 
 # --- Map Route ---
@@ -284,7 +321,11 @@ def delete(image_id):
 def detail(image_id):
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
-    c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images WHERE id = ?", (image_id,))
+    c.execute("""
+        SELECT id, name, description, category, filepath, latitude, longitude,
+               upload_date, upload_time, exif_date, exif_time
+        FROM images WHERE id = ?
+    """, (image_id,))
     img = c.fetchone()
     conn.close()
 
@@ -292,6 +333,7 @@ def detail(image_id):
         return redirect(url_for('gallery'))
 
     return render_template('detail.html', img=img, title="Bilddetails")
+
 
 
 if __name__ == '__main__':
