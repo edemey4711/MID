@@ -32,12 +32,14 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-semibold">Latitude</label>
-                    <input class="form-control" type="text" name="lat" value="{{ image[5] }}">
+                    <input class="form-control" type="text" name="lat" value="{{ image[5] }}" readonly>
+                    <div class="form-text text-muted">Latitude ist schreibgeschützt und wird beim Speichern beibehalten.</div>
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-semibold">Longitude</label>
-                    <input class="form-control" type="text" name="lng" value="{{ image[6] }}">
+                    <input class="form-control" type="text" name="lng" value="{{ image[6] }}" readonly>
+                    <div class="form-text text-muted">Longitude ist schreibgeschützt und wird beim Speichern beibehalten.</div>
                 </div>
             </div>
 

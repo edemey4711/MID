@@ -177,6 +177,7 @@
   }).addTo(map);
 
   const markers = [];
+  const markersById = {}; // collect markers by id for ?focus=
 
   images.forEach((img) => {
     const name = img[1] || "";
@@ -195,6 +196,7 @@
     marker.category = category; // Kategorie speichern
     markerCluster.addLayer(marker);
     markers.push(marker);
+    markersById[String(img[0])] = marker; // <-- store marker by id
 
     marker.bindPopup(`
       <div style="max-width:200px">
@@ -224,6 +226,18 @@
         }
       });
     });
+
+  // If the URL contains ?focus=<id>, open the corresponding popup
+  const params = new URLSearchParams(window.location.search);
+  const focus = params.get('focus');
+  if (focus && markersById[focus]) {
+    const m = markersById[focus];
+    // ensure the marker is visible (works with clusters) then open popup & set view
+    markerCluster.zoomToShowLayer(m, function () {
+      map.setView(m.getLatLng(), 15);
+      m.openPopup();
+    });
+  }
 </script>
 
 {% endblock %}

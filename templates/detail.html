@@ -1,67 +1,107 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 
 <h1 class="mb-4 fw-bold">Bilddetails</h1>
 
 <div class="row">
-
-    <!-- Linke Seite: Bild -->
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-            <img src="/{{ img[4] }}" class="card-img-top" style="max-height:500px; object-fit:contain;">
-        </div>
+  <!-- Linke Seite: Bild -->
+  <div class="col-md-6 mb-4">
+    <div class="card shadow-sm">
+      <img
+        src="/{{ img[4] }}"
+        class="card-img-top"
+        style="max-height: 500px; object-fit: contain"
+      />
     </div>
+  </div>
 
-    <!-- Rechte Seite: Infos -->
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-sm">
-            <div class="card-body">
+  <!-- Rechte Seite: Infos -->
+  <div class="col-md-6 mb-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h3 class="fw-bold">{{ img[1] }}</h3>
+        <p class="text-muted">{{ img[3] }}</p>
 
-                <h3 class="fw-bold">{{ img[1] }}</h3>
-                <p class="text-muted">{{ img[3] }}</p>
+        <p>{{ img[2] }}</p>
 
-                <p>{{ img[2] }}</p>
+        <hr />
 
-                <hr>
+        <h4 class="fw-bold mt-3">Koordinaten</h4>
+        <p><strong>Latitude:</strong> {{ img[5] }}</p>
+        <p><strong>Longitude:</strong> {{ img[6] }}</p>
 
-                <p><strong>Latitude:</strong> {{ img[5] }}</p>
-                <p><strong>Longitude:</strong> {{ img[6] }}</p>
+        <hr />
 
-                <hr>
+        <h4 class="fw-bold mt-3">Zeitinformationen</h4>
 
-                <a href="{{ url_for('edit', image_id=img[0]) }}" class="btn btn-dark me-2">Bearbeiten</a>
-                <a href="{{ url_for('delete', image_id=img[0]) }}" class="btn btn-danger">Löschen</a>
+        <!-- Upload-Datum -->
+        <p>
+          <strong>Upload‑Datum:</strong>
+          {% if img[7] %} {{ img[7].split('-')[2] }}.{{ img[7].split('-')[1]
+          }}.{{ img[7].split('-')[0] }} {% else %} – {% endif %}
+        </p>
 
-            </div>
-        </div>
+        <!-- Upload-Zeit -->
+        <p>
+          <strong>Upload‑Zeit:</strong>
+          {{ img[8] if img[8] else "–" }}
+        </p>
+
+        <!-- EXIF-Datum -->
+        <p>
+          <strong>Bild erstellt am:</strong>
+          {% if img[9] %} {{ img[9].split('-')[2] }}.{{ img[9].split('-')[1]
+          }}.{{ img[9].split('-')[0] }} {% else %} - {% endif %}
+        </p>
+
+        <!-- EXIF-Zeit -->
+        <p>
+          <strong>Bild erstellt um:</strong>
+          {{ img[10] if img[10] else "–" }}
+        </p>
+
+        <hr />
+
+        <a
+          href="{{ url_for('edit', image_id=img[0]) }}"
+          class="btn btn-dark me-2"
+          >Bearbeiten</a
+        >
+        <a
+          href="{{ url_for('delete', image_id=img[0]) }}"
+          class="btn btn-danger"
+          >Löschen</a
+        >
+      </div>
     </div>
-
+  </div>
 </div>
 
 <!-- Mini-Karte -->
 <div class="card shadow-sm mt-4">
-    <div class="card-body">
-        <h4 class="fw-bold mb-3">Position</h4>
-        <div id="detailMap" style="height: 350px;"></div>
-    </div>
+  <div class="card-body">
+    <h4 class="fw-bold mb-3">Position</h4>
+    <div id="detailMap" style="height: 350px"></div>
+  </div>
 </div>
 
 <script>
-    const map = L.map('detailMap').setView([{{ img[5] }}, {{ img[6] }}], 15);
+  const lat = parseFloat("{{ img[5] }}");
+  const lon = parseFloat("{{ img[6] }}");
+  const map = L.map('detailMap').setView([lat, lon], 15);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-    }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19
+  }).addTo(map);
 
-    // Marker mit deinem MEN-IN-DRECK Icon
-    const menInDreckIcon = L.icon({
-        iconUrl: "/static/icons/men-in-dreck-helmet.svg",
-        iconSize: [48, 48],
-        iconAnchor: [24, 48],
-        popupAnchor: [0, -48]
-    });
+  // Marker mit deinem MEN-IN-DRECK Icon
+  const menInDreckIcon = L.icon({
+      iconUrl: "/static/icons/men-in-dreck-helmet.svg",
+      iconSize: [48, 48],
+      iconAnchor: [24, 48],
+      popupAnchor: [0, -48]
+  });
 
-    L.marker([{{ img[5] }}, {{ img[6] }}], { icon: menInDreckIcon }).addTo(map);
+  L.marker([lat, lon], { icon: menInDreckIcon }).addTo(map);
 </script>
 
 {% endblock %}

@@ -52,7 +52,7 @@
 
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container">
+      <div class="container-fluid">
         <!-- Logo + Schriftzug -->
         <a
           class="navbar-brand fw-bold d-flex align-items-center"
@@ -78,7 +78,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
+          <ul class="navbar-nav me-auto">
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('map') }}">Karte</a>
             </li>
@@ -89,6 +89,17 @@
 
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('gallery') }}">Galerie</a>
+            </li>
+          </ul>
+
+          <!-- rechte Nav (Login/Logout) -->
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              {% if session.username %}
+                <a class="nav-link" href="{{ url_for('logout') }}">Logout ({{ session.username }})</a>
+              {% else %}
+                <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+              {% endif %}
             </li>
           </ul>
         </div>

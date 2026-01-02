@@ -1,5 +1,11 @@
-{% extends "base.html" %} {% block content %}
-
+{% extends "base.html" %} {% block head %}
+<style>
+  .input-error {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+</style>
+{% endblock %} {% block content %}
 <h1 class="mb-4 fw-bold">Bild hochladen</h1>
 
 <div class="card shadow-sm">
@@ -8,6 +14,9 @@
       <div class="mb-3">
         <label class="form-label fw-semibold">Name</label>
         <input class="form-control" type="text" name="name" required />
+        <div id="nameError" class="text-danger mt-1" style="display: none">
+          Bitte einen Namen eingeben.
+        </div>
       </div>
 
       <div class="mb-3">
@@ -41,5 +50,35 @@
     </form>
   </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const nameInput = document.getElementById("name");
+    const nameError = document.getElementById("nameError");
+    const submitBtn = document.querySelector("button[type='submit']");
+
+    function validateName() {
+        const value = nameInput.value.trim();
+
+        if (value.length === 0) {
+            nameInput.classList.add("input-error");
+            nameError.style.display = "block";
+            submitBtn.disabled = true;
+        } else {
+            nameInput.classList.remove("input-error");
+            nameError.style.display = "none";
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Live prüfen
+    nameInput.addEventListener("input", validateName);
+
+    // Initial prüfen (falls Browser Autofill nutzt)
+    validateName();
+});
+</script>
+
 
 {% endblock %}

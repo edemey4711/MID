@@ -2,16 +2,53 @@
 
 <h1 class="mb-4 fw-bold">Galerie</h1>
 
+<!-- Responsive Verbesserungen -->
+<style>
+  /* Scrollbarer Bereich mit Sticky-Header */
+  .table-responsive.custom-table {
+    max-height: 65vh;
+    overflow: auto;
+  }
+  .table-responsive.custom-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #343a40; /* passt zur table-dark */
+    color: #fff;
+  }
+
+  /* Mobile-Optimierungen */
+  @media (max-width: 575.98px) {
+    .gallery-action .btn {
+      display: block;
+      width: 100%;
+      margin-bottom: .35rem;
+    }
+    .preview-img {
+      height: 48px;
+    }
+    /* Beschneide lange Namen sauber */
+    .name-truncate {
+      max-width: 140px;
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+    }
+  }
+</style>
+
 <div class="card shadow-sm">
-  <div class="card-body table-responsive">
+  <div class="card-body table-responsive custom-table">
     <table class="table table-striped align-middle">
       <thead class="table-dark">
         <tr>
-          <th>ID</th>
+          <th class="d-none d-md-table-cell">ID</th>
           <th>Vorschau</th>
           <th>Name</th>
-          <th>Kategorie</th>
-          <th>Beschreibung</th>
+          <th class="d-none d-md-table-cell">Kategorie</th>
+          <th class="d-none d-md-table-cell">Beschreibung</th>
           <th>Latitude</th>
           <th>Longitude</th>
           <th>Aktion</th>
@@ -21,38 +58,60 @@
       <tbody>
         {% for img in images %}
         <tr>
-          <td>{{ img[0] }}</td>
+          <!-- ID (versteckt auf kleinen Bildschirmen) -->
+          <td class="align-middle d-none d-md-table-cell">{{ img[0] }}</td>
 
-          <td>
-            <img
-              src="/{{ img[4] }}"
-              style="height: 60px"
-              class="rounded shadow-sm"
-            />
-          </td>
-
-          <td>{{ img[1] }}</td>
-          <td>{{ img[3] }}</td>
-          <td>{{ img[2] }}</td>
-          <td>{{ img[5] }}</td>
-          <td>{{ img[6] }}</td>
-
-          <td>
+          <!-- Vorschau (verlinkt zur Detailseite) -->
+          <td class="align-middle">
             <a
               href="{{ url_for('detail', image_id=img[0]) }}"
-              class="btn btn-sm btn-primary me-1"
-              >Details</a
+              title="Details ansehen"
+              class="d-inline-block"
+              style="cursor: pointer"
             >
-            <a
-              href="{{ url_for('edit', image_id=img[0]) }}"
-              class="btn btn-sm btn-dark"
-              >Bearbeiten</a
-            >
-            <a
-              href="{{ url_for('delete', image_id=img[0]) }}"
-              class="btn btn-sm btn-danger ms-1"
-              >Löschen</a
-            >
+              <img
+                src="/{{ img[4] }}"
+                style="height: 60px"
+                class="rounded shadow-sm preview-img"
+                alt="{{ img[1] }}"
+              />
+            </a>
+          </td>
+
+          <!-- Name (mit Trunkierung auf kleinen Bildschirmen) -->
+          <td class="align-middle">
+            <span class="name-truncate">{{ img[1] }}</span>
+          </td>
+
+          <!-- Kategorie und Beschreibung (hidden on xs) -->
+          <td class="align-middle d-none d-md-table-cell">{{ img[3] }}</td>
+          <td class="align-middle d-none d-md-table-cell" style="max-width:220px; overflow:hidden; text-overflow:ellipsis;">
+            {{ img[2] }}
+          </td>
+
+          <!-- Latitude / Longitude: Link zur Map mit focus -->
+          <td class="align-middle">
+            <a href="{{ url_for('map') }}?focus={{ img[0] }}" title="In Karte anzeigen">
+              {{ img[5] if img[5] else "–" }}
+            </a>
+          </td>
+          <td class="align-middle">
+            <a href="{{ url_for('map') }}?focus={{ img[0] }}" title="In Karte anzeigen">
+              {{ img[6] if img[6] else "–" }}
+            </a>
+          </td>
+
+          <!-- Aktion (auf kleinen Geräten Buttons gestapelt) -->
+          <td class="align-middle">
+            <div class="gallery-action d-flex flex-column flex-md-row gap-1 align-items-start">
+              <a href="{{ url_for('detail', image_id=img[0]) }}" class="btn btn-sm btn-outline-primary">Details</a>
+              {% if session.role in ['uploader','admin'] %}
+                <a href="{{ url_for('edit', image_id=img[0]) }}" class="btn btn-sm btn-dark">Bearbeiten</a>
+                <form method="post" action="{{ url_for('delete', image_id=img[0]) }}" style="display:inline;">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sicher löschen?')">Löschen</button>
+                </form>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% endfor %}

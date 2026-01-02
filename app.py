@@ -7,10 +7,15 @@ from PIL.ExifTags import TAGS, GPSTAGS
 import pillow_heif
 from PIL import ImageOps
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask import session, flash
 
 pillow_heif.register_heif_opener()
 
 app = Flask(__name__)
+# Use an environment variable in production. Fallback to a random key for dev.
+app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
+
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 ALLOWED_CATEGORIES = ["Burg", "Fels", "Kirche", "Aussicht"]
 
@@ -90,20 +95,31 @@ def init_db():
     c = conn.cursor()
 
     # Erzeuge die Tabelle mit dem kanonischen Schema, falls sie nicht existiert
-    c.execute('''CREATE TABLE IF NOT EXISTS images (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        category TEXT,
-        filepath TEXT NOT NULL,
-        latitude REAL,
-        longitude REAL,
-        upload_date TEXT,
-        upload_time TEXT,
-        exif_date TEXT,
-        exif_time TEXT,
-        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )''')
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS images (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      description TEXT,
+      category TEXT,
+      filepath TEXT NOT NULL,
+      latitude REAL,
+      longitude REAL,
+      upload_date TEXT,
+      upload_time TEXT,
+      exif_date TEXT,
+      exif_time TEXT,
+      uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    # ensure users table exists
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'uploader'
+    )
+    """)
     conn.commit()
 
     # Falls die Tabelle aus einer älteren Version vorhanden ist, fügen wir fehlende Spalten hinzu
@@ -125,7 +141,6 @@ def init_db():
                 # Best effort: falls ALTER TABLE fehlschlägt, fahren wir fort
                 pass
 
-    conn.commit()
     conn.close()
 
 init_db()
@@ -335,6 +350,37 @@ def detail(image_id):
     return render_template('detail.html', img=img, title="Bilddetails")
 
 
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = get_user_by_username(request.form['username'])
+        if user and check_password_hash(user['password_hash'], request.form['password']):
+            session['user_id'] = user['id']
+            session['username'] = user['username']
+            session['role'] = user['role']
+            return redirect(request.args.get('next') or url_for('gallery'))
+        flash('Ungültiger Benutzername oder Passwort', 'danger')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('gallery'))
+
+def get_user_by_username(username):
+    conn = sqlite3.connect('database.db')
+    cur = conn.execute("SELECT id, username, password_hash, role FROM users WHERE username = ?", (username,))
+    row = cur.fetchone()
+    conn.close()
+    return row and {'id': row[0], 'username': row[1], 'password_hash': row[2], 'role': row[3]}
+
+def create_user(username, password, role='uploader'):
+    pw = generate_password_hash(password)
+    conn = sqlite3.connect('database.db')
+    conn.execute("INSERT INTO users (username, password_hash, role) VALUES (?,?,?)", (username, pw, role))
+    conn.commit()
+    conn.close()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
