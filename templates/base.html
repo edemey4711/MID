@@ -84,7 +84,9 @@
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('upload') }}">Bild hochladen</a>
+              {% if session.get('role') in ['uploader','admin'] %}
+                <a class="nav-link" href="{{ url_for('upload') }}">Bild hochladen</a>
+              {% endif %}
             </li>
 
             <li class="nav-item">
@@ -96,7 +98,9 @@
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
               {% if session.username %}
-                <a class="nav-link" href="{{ url_for('logout') }}">Logout ({{ session.username }})</a>
+                <form action="{{ url_for('logout') }}" method="post" class="d-inline">
+                  <button type="submit" class="btn btn-link nav-link p-0">Logout ({{ session.username }})</button>
+                </form>
               {% else %}
                 <a class="nav-link" href="{{ url_for('login') }}">Login</a>
               {% endif %}

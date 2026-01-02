@@ -9,6 +9,8 @@ from PIL import ImageOps
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session, flash
+from functools import wraps
+from flask import session, redirect, url_for, request, abort
 
 pillow_heif.register_heif_opener()
 
@@ -146,8 +148,30 @@ def init_db():
 init_db()
 
 
+# --- Login-Logout Hilfsfunktionen ---
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login', next=request.path))
+        return f(*args, **kwargs)
+    return decorated
+
+def role_required(*roles):
+    def deco(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            if session.get('role') not in roles:
+                abort(403)
+            return f(*args, **kwargs)
+        return decorated
+    return deco
+
+
 # --- Upload Route ---
 @app.route('/upload', methods=['GET', 'POST'])
+@login_required
+@role_required('uploader','admin')
 def upload():
     if request.method == 'POST':
         name = request.form['name']
@@ -268,6 +292,8 @@ def gallery():
     return render_template('gallery.html', images=images, title="Galerie")
 
 @app.route('/edit/<int:image_id>', methods=['GET', 'POST'])
+@login_required
+@role_required('uploader','admin')
 def edit(image_id):
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -299,7 +325,9 @@ def edit(image_id):
 
     return render_template('edit.html', image=image, title="Bild bearbeiten")
 
-@app.route('/delete/<int:image_id>', methods=['GET', 'POST'])
+@app.route('/delete/<int:image_id>', methods=['POST'])
+@login_required
+@role_required('uploader','admin')
 def delete(image_id):
     conn = sqlite3.connect('database.db')
     c = conn.cursor()
@@ -314,23 +342,20 @@ def delete(image_id):
 
     filepath = row[0]
 
-    if request.method == 'POST':
-        # Datei löschen, falls vorhanden
-        if filepath and os.path.exists(filepath):
-            try:
-                os.remove(filepath)
-            except:
-                pass
+    # Datei löschen, falls vorhanden
+    if filepath and os.path.exists(filepath):
+        try:
+            os.remove(filepath)
+        except:
+            pass
 
-        # DB-Eintrag löschen
-        c.execute("DELETE FROM images WHERE id = ?", (image_id,))
-        conn.commit()
-        conn.close()
-
-        return redirect(url_for('gallery'))
-
+    # DB-Eintrag löschen
+    c.execute("DELETE FROM images WHERE id = ?", (image_id,))
+    conn.commit()
     conn.close()
-    return render_template('delete_confirm.html', image_id=image_id, filepath=filepath, title="Bild löschen")
+
+    return redirect(url_for('gallery'))
+
 
 @app.route('/detail/<int:image_id>')
 def detail(image_id):
@@ -363,10 +388,15 @@ def login():
         flash('Ungültiger Benutzername oder Passwort', 'danger')
     return render_template('login.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['GET', 'POST'])
 def logout():
+    app.logger.debug("Logout aufgerufen; Session vorher: %s", dict(session))
     session.clear()
-    return redirect(url_for('gallery'))
+    resp = redirect(url_for('gallery'))
+    cookie_name = app.config.get('SESSION_COOKIE_NAME', 'session')
+    resp.delete_cookie(cookie_name)
+    flash('Erfolgreich ausgeloggt', 'success')
+    return resp
 
 def get_user_by_username(username):
     conn = sqlite3.connect('database.db')
