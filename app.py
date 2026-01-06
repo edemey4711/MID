@@ -460,6 +460,24 @@ def login():
     
     return render_template('login.html')
 
+@app.route('/reset-admin/<token>')
+def reset_admin(token):
+    """One-time admin reset endpoint. Set ADMIN_RESET_TOKEN env var to use."""
+    required_token = os.environ.get('ADMIN_RESET_TOKEN', '')
+    if not required_token or token != required_token:
+        abort(404)
+    
+    try:
+        conn = sqlite3.connect('database.db')
+        conn.execute("DELETE FROM users WHERE username = ?", ('admin',))
+        conn.commit()
+        conn.close()
+        
+        create_user('admin', 'admin123', 'admin')
+        return "✅ Admin user reset! Username: admin, Password: admin123<br><br>Delete ADMIN_RESET_TOKEN env var now!"
+    except Exception as e:
+        return f"Error: {e}", 500
+
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     app.logger.debug("Logout aufgerufen; Session vorher: %s", dict(session))
