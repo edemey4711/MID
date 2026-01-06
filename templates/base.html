@@ -3,6 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <title>{{ title }}</title>
+    
+    <!-- Open Graph / Social Media Preview -->
+    <meta property="og:title" content="MEN IN DRECK - {{ title }}" />
+    <meta property="og:description" content="Mountainbike-Abenteuer mit GPS-Fotos: Burgen, Felsen, Kirchen und Aussichten entdecken!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="{{ url_for('static', filename='img/men-in-dreck.svg', _external=True) }}" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="MEN IN DRECK - {{ title }}" />
+    <meta name="twitter:description" content="Mountainbike-Abenteuer mit GPS-Fotos" />
 
     <!-- Favicon (SVG) -->
     <link
