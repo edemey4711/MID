@@ -50,7 +50,7 @@
           <h5 class="fw-bold mb-1">${name}</h5>
           <span class="badge bg-warning text-dark mb-2">${category}</span>
           <p>${description}</p>
-          <img src="${filepath}" class="img-fluid rounded mb-2">
+          <img src="/uploads/${filepath}" class="img-fluid rounded mb-2">
           <a href="/detail/${img[0]}" class="btn btn-warning btn-sm w-100">Details ansehen</a>
       </div>
     `);
