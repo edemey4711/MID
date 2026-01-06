@@ -188,17 +188,6 @@ def init_db():
 
 init_db()
 
-# --- Create default admin user if not exists ---
-def ensure_admin_user():
-    try:
-        admin = get_user_by_username('admin')
-        if not admin:
-            create_user('admin', 'admin123', 'admin')
-            print("✅ Default admin user created: admin/admin123")
-    except Exception as e:
-        print(f"Note: {e}")
-
-ensure_admin_user()
 
 
 # --- Login-Logout Hilfsfunktionen ---
@@ -477,6 +466,15 @@ def create_user(username, password, role='uploader'):
     conn.execute("INSERT INTO users (username, password_hash, role) VALUES (?,?,?)", (username, pw, role))
     conn.commit()
     conn.close()
+
+# Ensure default admin user on import (after helpers are defined)
+try:
+    admin = get_user_by_username('admin')
+    if not admin:
+        create_user('admin', 'admin123', 'admin')
+        app.logger.info("Default admin user created: admin/admin123")
+except Exception as e:
+    app.logger.warning(f"ensure_admin_user: {e}")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
