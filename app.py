@@ -188,6 +188,18 @@ def init_db():
 
 init_db()
 
+# --- Create default admin user if not exists ---
+def ensure_admin_user():
+    try:
+        admin = get_user_by_username('admin')
+        if not admin:
+            create_user('admin', 'admin123', 'admin')
+            print("✅ Default admin user created: admin/admin123")
+    except Exception as e:
+        print(f"Note: {e}")
+
+ensure_admin_user()
+
 
 # --- Login-Logout Hilfsfunktionen ---
 def login_required(f):
