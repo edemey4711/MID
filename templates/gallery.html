@@ -34,7 +34,7 @@
               style="cursor: pointer"
             >
               <img
-                src="/{{ img[4] }}"
+                src="{{ url_for('uploaded_file', filename=img[4]) }}"
                 style="height: 60px"
                 class="rounded shadow-sm preview-img"
                 alt="{{ img[1] }}"

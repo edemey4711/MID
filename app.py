@@ -2,6 +2,7 @@ import os
 import sqlite3
 from flask import Flask, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
+from flask import send_from_directory
 import uuid
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
@@ -23,10 +24,13 @@ app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 # Database path: use /data on Railway (with volume), fallback to local for dev
 DB_PATH = '/data/database.db' if os.path.exists('/data') else 'database.db'
 
+# Upload folder: use /data/uploads on Railway (with volume), fallback to static/uploads for dev
+UPLOAD_FOLDER = '/data/uploads' if os.path.exists('/data') else 'static/uploads'
+
 # Enable CSRF protection
 csrf = CSRFProtect(app)
 
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max file size
 ALLOWED_CATEGORIES = ["Burg", "Fels", "Kirche", "Aussicht"]
 
@@ -193,6 +197,13 @@ init_db()
 
 
 
+# --- Serve uploaded images from volume ---
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """Serve uploaded images from UPLOAD_FOLDER (which may be in /data/uploads on Railway)"""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
 # --- Login-Logout Hilfsfunktionen ---
 def login_required(f):
     @wraps(f)
@@ -311,7 +322,7 @@ def upload():
             upload_date = now.strftime("%Y-%m-%d")
             upload_time = now.strftime("%H:%M:%S")
 
-            # --- In DB speichern ---
+            # --- In DB speichern (nur Dateiname, nicht voller Pfad) ---
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute("""
@@ -319,7 +330,7 @@ def upload():
                 (name, description, category, filepath, latitude, longitude,
                  upload_date, upload_time, exif_date, exif_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (name, description, category, path, lat, lon,
+            """, (name, description, category, filename, lat, lon,
                   upload_date, upload_time, exif_date, exif_time))
             conn.commit()
             conn.close()
@@ -401,11 +412,13 @@ def delete(image_id):
     filepath = row[0]
 
     # Datei löschen, falls vorhanden
-    if filepath and os.path.exists(filepath):
-        try:
-            os.remove(filepath)
-        except:
-            pass
+    if filepath:
+        full_path = os.path.join(app.config['UPLOAD_FOLDER'], filepath)
+        if os.path.exists(full_path):
+            try:
+                os.remove(full_path)
+            except:
+                pass
 
     # DB-Eintrag löschen
     c.execute("DELETE FROM images WHERE id = ?", (image_id,))

@@ -49,7 +49,7 @@
 
             <div class="mb-3">
                 <label class="form-label fw-semibold">Aktuelles Bild</label><br>
-                <img src="/{{ image[4] }}" class="edit-preview-img rounded shadow-sm">
+                <img src="{{ url_for('uploaded_file', filename=image[4]) }}" class="edit-preview-img rounded shadow-sm">
             </div>
 
             <button class="btn btn-dark fw-bold px-4">Speichern</button>
