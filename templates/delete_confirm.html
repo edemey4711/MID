@@ -11,6 +11,7 @@
         <img src="/{{ filepath }}" style="max-width:200px;" class="rounded shadow-sm mb-3">
 
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-danger fw-bold">Ja, löschen</button>
             <a href="{{ url_for('gallery') }}" class="btn btn-secondary">Abbrechen</a>
         </form>

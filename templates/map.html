@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% set fullscreen = true %} {% block content %}
+{% extends "base.html" %} {% set fullscreen = true %} {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
+{% endblock %} {% block content %}
 
 <div id="category-filter-box" class="filter-box">
   <select id="category-select" class="pill-select">
@@ -10,106 +12,10 @@
   </select>
 </div>
 
-<style>
-  html,
-  body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-  }
-
-  /* Karte soll den gesamten Bildschirm einnehmen */
-  #map {
-    position: absolute;
-    top: 56px; /* Höhe der Navbar */
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    height: calc(100% - 56px);
-    margin: 0;
-    padding: 0;
-    z-index: 1; /* Karte unter Navbar */
-  }
-  /* iPhone Safari Fix */
-  body {
-    overflow: hidden;
-  }
-
-  /* Schwebende Animation */
-  @keyframes float {
-    0% {
-      transform: translateX(-50%) translateY(0);
-    }
-    50% {
-      transform: translateX(-50%) translateY(-3px);
-    }
-    100% {
-      transform: translateX(-50%) translateY(0);
-    }
-  }
-
-  /* Filter-Box Position + Animation */
-  .filter-box {
-    position: absolute;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-
-    animation: float 3s ease-in-out infinite;
-  }
-
-  @media (hover: hover) {
-    .filter-box:hover {
-      transform: translateX(-50%) scale(1.03);
-    }
-  }
-
-  /* Pill-Select (Option B) */
-  .pill-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-
-    background: white;
-    border: 2px solid #ffc800; /* MEN-IN-DRECK Gelb */
-    border-radius: 999px; /* macht es zur Pille */
-    padding: 10px 18px;
-    font-size: 15px;
-    font-weight: bold;
-    color: #111;
-    cursor: pointer;
-
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    transition: all 0.2s ease;
-
-    /* Pfeil rechts */
-    background-image: url("data:image/svg+xml;utf8,<svg fill='%23111' height='20' viewBox='0 0 20 20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5.5 7l4.5 4 4.5-4'/></svg>");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 16px;
-    padding-right: 40px;
-  }
-
-  /* Hover */
-  .pill-select:hover {
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
-  }
-
-  /* Fokus */
-  .pill-select:focus {
-    outline: none;
-    border-color: #ffdd33;
-    box-shadow: 0 0 0 3px rgba(255, 200, 0, 0.4);
-  }
-</style>
 
 <div id="map"></div>
 
-<script id="images-data" type="application/json">
-  {{ images | tojson }}
-</script>
+<div id="images-data" data-images='{{ images | tojson | e }}'></div>
 
 <!-- Leaflet MarkerCluster CSS -->
 <link
@@ -124,120 +30,6 @@
 <!-- Leaflet MarkerCluster JS -->
 <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
-<script>
-  const images = JSON.parse(document.getElementById("images-data").textContent);
-
-  const menInDreckHelmetBadge = L.icon({
-    iconUrl: "/static/icons/men-in-dreck-helmet.svg",
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
-    popupAnchor: [0, -48],
-  });
-
-  const categoryIcons = {
-    Burg: L.icon({
-      iconUrl: "/static/icons/burg.svg",
-      iconSize: [48, 48],
-      iconAnchor: [24, 48],
-      popupAnchor: [0, -48],
-    }),
-    Fels: L.icon({
-      iconUrl: "/static/icons/fels.svg",
-      iconSize: [48, 48],
-      iconAnchor: [24, 48],
-      popupAnchor: [0, -48],
-    }),
-    Kirche: L.icon({
-      iconUrl: "/static/icons/kirche.svg",
-      iconSize: [48, 48],
-      iconAnchor: [24, 48],
-      popupAnchor: [0, -48],
-    }),
-    Aussicht: L.icon({
-      iconUrl: "/static/icons/aussicht.svg",
-      iconSize: [48, 48],
-      iconAnchor: [24, 48],
-      popupAnchor: [0, -48],
-    }),
-  };
-
-  // Fallback-Icon
-  const defaultIcon = L.icon({
-    iconUrl: "/static/icons/default.svg",
-    iconSize: [48, 48],
-    iconAnchor: [24, 48],
-    popupAnchor: [0, -48],
-  });
-
-  const map = L.map("map").setView([51.1657, 10.4515], 6);
-  const markerCluster = L.markerClusterGroup();
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19,
-  }).addTo(map);
-
-  const markers = [];
-  const markersById = {}; // collect markers by id for ?focus=
-
-  images.forEach((img) => {
-    const name = img[1] || "";
-    const description = img[2] || "";
-    const category = img[3] || "";
-    const filepath = img[4] || "";
-    let lat = img[5];
-    let lon = img[6];
-
-    if (!lat || isNaN(lat)) lat = 51.1657;
-    if (!lon || isNaN(lon)) lon = 10.4515;
-
-    const icon = categoryIcons[category] || defaultIcon;
-
-    const marker = L.marker([lat, lon], { icon });
-    marker.category = category; // Kategorie speichern
-    markerCluster.addLayer(marker);
-    markers.push(marker);
-    markersById[String(img[0])] = marker; // <-- store marker by id
-
-    marker.bindPopup(`
-      <div style="max-width:200px">
-          <h5 class="fw-bold mb-1">${name}</h5>
-          <span class="badge bg-warning text-dark mb-2">${category}</span>
-          <p>${description}</p>
-          <img src="${filepath}" class="img-fluid rounded mb-2">
-          <a href="/detail/${img[0]}" class="btn btn-warning btn-sm w-100">Details ansehen</a>
-      </div>
-  `);
-
-
-  });
-
-  map.addLayer(markerCluster);
-
-  document
-    .getElementById("category-select")
-    .addEventListener("change", function () {
-      const selected = this.value;
-
-      markers.forEach((marker) => {
-        if (selected === "Alle" || marker.category === selected) {
-          markerCluster.addLayer(marker);
-        } else {
-          markerCluster.removeLayer(marker);
-        }
-      });
-    });
-
-  // If the URL contains ?focus=<id>, open the corresponding popup
-  const params = new URLSearchParams(window.location.search);
-  const focus = params.get('focus');
-  if (focus && markersById[focus]) {
-    const m = markersById[focus];
-    // ensure the marker is visible (works with clusters) then open popup & set view
-    markerCluster.zoomToShowLayer(m, function () {
-      map.setView(m.getLatLng(), 15);
-      m.openPopup();
-    });
-  }
-</script>
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
 
 {% endblock %}

@@ -3,6 +3,7 @@
   <div class="card-body">
     <h3 class="mb-3">Login</h3>
     <form method="post" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="mb-3">
         <label class="form-label">Benutzer</label>
         <input class="form-control" name="username" required />

@@ -1,0 +1,38 @@
+/* Scrollbarer Bereich mit Sticky-Header */
+.table-responsive.custom-table {
+  max-height: 65vh;
+  overflow: auto;
+}
+
+.table-responsive.custom-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #343a40; /* passt zur table-dark */
+  color: #fff;
+}
+
+.preview-img {
+  height: 60px;
+}
+
+/* Mobile-Optimierungen */
+@media (max-width: 575.98px) {
+  .gallery-action .btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.35rem;
+  }
+  .preview-img {
+    height: 48px;
+  }
+  /* Beschneide lange Namen sauber */
+  .name-truncate {
+    max-width: 140px;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+}

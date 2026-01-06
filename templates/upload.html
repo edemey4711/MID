@@ -1,19 +1,15 @@
 {% extends "base.html" %} {% block head %}
-<style>
-  .input-error {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-  }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
 {% endblock %} {% block content %}
 <h1 class="mb-4 fw-bold">Bild hochladen</h1>
 
 <div class="card shadow-sm">
   <div class="card-body">
     <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <div class="mb-3">
         <label class="form-label fw-semibold">Name</label>
-        <input class="form-control" type="text" name="name" required />
+        <input id="name" class="form-control" type="text" name="name" required />
         <div id="nameError" class="text-danger mt-1" style="display: none">
           Bitte einen Namen eingeben.
         </div>
@@ -46,7 +42,7 @@
         />
       </div>
 
-      <button class="btn btn-dark fw-bold px-4">Hochladen</button>
+      <button type="submit" class="btn btn-dark fw-bold px-4">Hochladen</button>
     </form>
   </div>
 </div>
@@ -80,5 +76,5 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-
+<script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 {% endblock %}

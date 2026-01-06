@@ -1,44 +1,8 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+{% endblock %} {% block content %}
 
 <h1 class="mb-4 fw-bold">Galerie</h1>
-
-<!-- Responsive Verbesserungen -->
-<style>
-  /* Scrollbarer Bereich mit Sticky-Header */
-  .table-responsive.custom-table {
-    max-height: 65vh;
-    overflow: auto;
-  }
-  .table-responsive.custom-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: #343a40; /* passt zur table-dark */
-    color: #fff;
-  }
-
-  /* Mobile-Optimierungen */
-  @media (max-width: 575.98px) {
-    .gallery-action .btn {
-      display: block;
-      width: 100%;
-      margin-bottom: .35rem;
-    }
-    .preview-img {
-      height: 48px;
-    }
-    /* Beschneide lange Namen sauber */
-    .name-truncate {
-      max-width: 140px;
-      display: inline-block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      vertical-align: middle;
-    }
-  }
-</style>
-
 <div class="card shadow-sm">
   <div class="card-body table-responsive custom-table">
     <table class="table table-striped align-middle">
@@ -108,6 +72,7 @@
               {% if session.role in ['uploader','admin'] %}
                 <a href="{{ url_for('edit', image_id=img[0]) }}" class="btn btn-sm btn-dark">Bearbeiten</a>
                 <form method="post" action="{{ url_for('delete', image_id=img[0]) }}" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Sicher löschen?')">Löschen</button>
                 </form>
               {% endif %}

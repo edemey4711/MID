@@ -23,31 +23,8 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style>
-      body {
-        background: #f8f9fa;
-        margin: 0;
-        padding: 0;
-      }
-
-      /* Navbar IMMER über der Karte */
-      nav.navbar {
-        position: relative;
-        z-index: 10000;
-      }
-
-      /* Karte darf NICHT abgerundet sein, wenn sie fullscreen ist */
-      #map {
-        border-radius: 0;
-        overflow: hidden;
-      }
-
-      .navbar-brand img {
-        height: 32px;
-        width: auto;
-        margin-right: 8px;
-      }
-    </style>
+    {% block head %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
   </head>
 
   <body>

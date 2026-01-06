@@ -2,6 +2,7 @@ import os
 import sqlite3
 from flask import Flask, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
+import uuid
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import pillow_heif
@@ -9,6 +10,7 @@ from PIL import ImageOps
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session, flash
+from flask_wtf.csrf import CSRFProtect
 from functools import wraps
 from flask import session, redirect, url_for, request, abort
 
@@ -18,8 +20,47 @@ app = Flask(__name__)
 # Use an environment variable in production. Fallback to a random key for dev.
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 
+# Enable CSRF protection
+csrf = CSRFProtect(app)
+
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max file size
 ALLOWED_CATEGORIES = ["Burg", "Fels", "Kirche", "Aussicht"]
+
+# Cookie security flags (dev-safe defaults; enable Secure on prod)
+_secure_cookie = os.environ.get('SESSION_COOKIE_SECURE')
+is_secure = (_secure_cookie in ('1', 'true', 'True')) or (os.environ.get('FLASK_ENV') == 'production')
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SECURE=is_secure
+)
+
+
+def _build_csp():
+    return (
+        "default-src 'self'; "
+        "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
+        "style-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
+        "img-src 'self' data: blob: https://*.tile.openstreetmap.org; "
+        "font-src 'self' data:; "
+        "connect-src 'self'; "
+        "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    )
+
+
+@app.after_request
+def set_security_headers(resp):
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    resp.headers['X-Frame-Options'] = 'DENY'
+    resp.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    resp.headers['Permissions-Policy'] = 'geolocation=(), camera=(), microphone=()'
+    resp.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    resp.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    resp.headers['Content-Security-Policy'] = _build_csp()
+    if is_secure:
+        resp.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains; preload'
+    return resp
 
 
 
@@ -192,6 +233,15 @@ def upload():
             os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
             path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 
+            # --- Validate file extension ---
+            if ext not in ["jpg", "jpeg", "png", "gif", "heic", "heif", "webp"]:
+                return "Nicht unterstütztes Bildformat. Erlaubt: JPG, PNG, GIF, HEIC, WebP", 400
+
+            # --- Generate secure unique filename ---
+            secure_base = secure_filename(image.filename.rsplit('.', 1)[0]) or "image"
+            filename = f"{uuid.uuid4().hex}_{secure_base}.{ext}"
+            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
             exif_data = {}
             lat, lon = None, None
             exif_date = None
@@ -224,6 +274,10 @@ def upload():
 
             # --- EXIF aus JPG auslesen ---
             try:
+                # Verify it's a valid image
+                verify_img = Image.open(path)
+                verify_img.verify()
+
                 pil_img_for_exif = Image.open(path)
                 exif_data = get_exif_data(pil_img_for_exif)
                 lat, lon = get_lat_lon(exif_data)
@@ -413,4 +467,6 @@ def create_user(username, password, role='uploader'):
     conn.close()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('FLASK_DEBUG', 'False').lower() in ('true', '1')
+    app.run(host='0.0.0.0', port=port, debug=debug)

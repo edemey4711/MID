@@ -84,24 +84,7 @@
   </div>
 </div>
 
-<script>
-  const lat = parseFloat("{{ img[5] }}");
-  const lon = parseFloat("{{ img[6] }}");
-  const map = L.map('detailMap').setView([lat, lon], 15);
-
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-  }).addTo(map);
-
-  // Marker mit deinem MEN-IN-DRECK Icon
-  const menInDreckIcon = L.icon({
-      iconUrl: "/static/icons/men-in-dreck-helmet.svg",
-      iconSize: [48, 48],
-      iconAnchor: [24, 48],
-      popupAnchor: [0, -48]
-  });
-
-  L.marker([lat, lon], { icon: menInDreckIcon }).addTo(map);
-</script>
+<div id="detail-data" data-lat="{{ img[5] }}" data-lon="{{ img[6] }}"></div>
+<script src="{{ url_for('static', filename='js/detail.js') }}"></script>
 
 {% endblock %}
