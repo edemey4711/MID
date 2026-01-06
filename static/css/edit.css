@@ -1,0 +1,12 @@
+.edit-preview-img {
+    max-width: 200px;
+    width: 100%;
+    height: auto;
+}
+
+/* Mobile optimization */
+@media (max-width: 767.98px) {
+    .edit-preview-img {
+        max-width: 150px;
+    }
+}
