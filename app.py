@@ -434,13 +434,30 @@ def detail(image_id):
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = get_user_by_username(request.form['username'])
-        if user and check_password_hash(user['password_hash'], request.form['password']):
+        username = request.form.get('username', '')
+        password = request.form.get('password', '')
+        
+        app.logger.info(f"Login attempt for username: {username}")
+        
+        user = get_user_by_username(username)
+        if not user:
+            app.logger.warning(f"User not found: {username}")
+            flash('Ungültiger Benutzername oder Passwort', 'danger')
+            return render_template('login.html')
+        
+        app.logger.info(f"User found: {username}, checking password...")
+        
+        if check_password_hash(user['password_hash'], password):
+            app.logger.info(f"Password correct for {username}, setting session...")
             session['user_id'] = user['id']
             session['username'] = user['username']
             session['role'] = user['role']
+            app.logger.info(f"Session set: {dict(session)}")
             return redirect(request.args.get('next') or url_for('gallery'))
-        flash('Ungültiger Benutzername oder Passwort', 'danger')
+        else:
+            app.logger.warning(f"Password incorrect for {username}")
+            flash('Ungültiger Benutzername oder Passwort', 'danger')
+    
     return render_template('login.html')
 
 @app.route('/logout', methods=['GET', 'POST'])
