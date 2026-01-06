@@ -486,7 +486,18 @@ def create_user(username, password, role='uploader'):
 
 # Ensure default admin user on import (after helpers are defined)
 try:
+    force_reset = os.environ.get('RESET_ADMIN_PASSWORD', 'false').lower() == 'true'
     admin = get_user_by_username('admin')
+    
+    if force_reset and admin:
+        # Delete existing admin and recreate
+        conn = sqlite3.connect('database.db')
+        conn.execute("DELETE FROM users WHERE username = ?", ('admin',))
+        conn.commit()
+        conn.close()
+        app.logger.info("Existing admin user deleted for reset")
+        admin = None
+    
     if not admin:
         create_user('admin', 'admin123', 'admin')
         app.logger.info("Default admin user created: admin/admin123")
