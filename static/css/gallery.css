@@ -17,18 +17,41 @@
 }
 
 /* Mobile-Optimierungen */
-@media (max-width: 575.98px) {
-  .gallery-action .btn {
-    display: block;
-    width: 100%;
-    margin-bottom: 0.35rem;
+@media (max-width: 767.98px) {
+  /* Tabelle kompakter auf mobil */
+  .table-responsive.custom-table {
+    max-height: 75vh;
   }
+  
+  .gallery-action .btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
   .preview-img {
     height: 48px;
   }
+  
   /* Beschneide lange Namen sauber */
   .name-truncate {
-    max-width: 140px;
+    max-width: 120px;
+    display: inline-block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+  }
+  
+  /* Aktion-Spalte schmaler */
+  td.align-middle:last-child {
+    padding: 0.25rem;
+  }
+}
+
+/* Tablet-Optimierung */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .name-truncate {
+    max-width: 180px;
     display: inline-block;
     white-space: nowrap;
     overflow: hidden;

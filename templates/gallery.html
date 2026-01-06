@@ -11,10 +11,10 @@
           <th class="d-none d-md-table-cell">ID</th>
           <th>Vorschau</th>
           <th>Name</th>
-          <th class="d-none d-md-table-cell">Kategorie</th>
-          <th class="d-none d-md-table-cell">Beschreibung</th>
-          <th>Latitude</th>
-          <th>Longitude</th>
+          <th class="d-none d-lg-table-cell">Kategorie</th>
+          <th class="d-none d-lg-table-cell">Beschreibung</th>
+          <th class="d-none d-md-table-cell">Latitude</th>
+          <th class="d-none d-md-table-cell">Longitude</th>
           <th>Aktion</th>
         </tr>
       </thead>
@@ -47,19 +47,19 @@
             <span class="name-truncate">{{ img[1] }}</span>
           </td>
 
-          <!-- Kategorie und Beschreibung (hidden on xs) -->
-          <td class="align-middle d-none d-md-table-cell">{{ img[3] }}</td>
-          <td class="align-middle d-none d-md-table-cell" style="max-width:220px; overflow:hidden; text-overflow:ellipsis;">
+          <!-- Kategorie und Beschreibung (hidden on smaller screens) -->
+          <td class="align-middle d-none d-lg-table-cell">{{ img[3] }}</td>
+          <td class="align-middle d-none d-lg-table-cell" style="max-width:220px; overflow:hidden; text-overflow:ellipsis;">
             {{ img[2] }}
           </td>
 
-          <!-- Latitude / Longitude: Link zur Map mit focus -->
-          <td class="align-middle">
+          <!-- Latitude / Longitude: Link zur Map mit focus (hidden on mobile) -->
+          <td class="align-middle d-none d-md-table-cell">
             <a href="{{ url_for('map') }}?focus={{ img[0] }}" title="In Karte anzeigen">
               {{ img[5] if img[5] else "–" }}
             </a>
           </td>
-          <td class="align-middle">
+          <td class="align-middle d-none d-md-table-cell">
             <a href="{{ url_for('map') }}?focus={{ img[0] }}" title="In Karte anzeigen">
               {{ img[6] if img[6] else "–" }}
             </a>
