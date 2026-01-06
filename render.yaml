@@ -12,12 +12,3 @@ services:
         value: production
       - key: SECRET_KEY
         generateValue: true
-    mounts:
-      - path: /opt/render/project/src/static/uploads
-        diskName: uploads-storage
-        diskSizeGB: 10
-
-disks:
-  - name: uploads-storage
-    mountPath: /opt/render/project/src/static/uploads
-    sizeGB: 10
