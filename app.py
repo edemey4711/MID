@@ -20,6 +20,9 @@ app = Flask(__name__)
 # Use an environment variable in production. Fallback to a random key for dev.
 app.secret_key = os.environ.get('SECRET_KEY') or os.urandom(24)
 
+# Database path: use /data on Railway (with volume), fallback to local for dev
+DB_PATH = '/data/database.db' if os.path.exists('/data') else 'database.db'
+
 # Enable CSRF protection
 csrf = CSRFProtect(app)
 
@@ -134,7 +137,7 @@ def get_lat_lon(exif_data):
 
 # --- Datenbank initialisieren (erzeugt oder migriert bei Bedarf) ---
 def init_db():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     # Erzeuge die Tabelle mit dem kanonischen Schema, falls sie nicht existiert
@@ -309,7 +312,7 @@ def upload():
             upload_time = now.strftime("%H:%M:%S")
 
             # --- In DB speichern ---
-            conn = sqlite3.connect('database.db')
+            conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute("""
                 INSERT INTO images 
@@ -330,7 +333,7 @@ def upload():
 # --- Map Route ---
 @app.route('/map')
 def map():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images")
     images = c.fetchall()
@@ -339,7 +342,7 @@ def map():
 
 @app.route('/gallery')
 def gallery():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images")
     images = c.fetchall()
@@ -350,7 +353,7 @@ def gallery():
 @login_required
 @role_required('uploader','admin')
 def edit(image_id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     if request.method == 'POST':
@@ -384,7 +387,7 @@ def edit(image_id):
 @login_required
 @role_required('uploader','admin')
 def delete(image_id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
     # Bilddaten laden
@@ -414,7 +417,7 @@ def delete(image_id):
 
 @app.route('/detail/<int:image_id>')
 def detail(image_id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("""
         SELECT id, name, description, category, filepath, latitude, longitude,
@@ -468,7 +471,7 @@ def reset_admin(token):
         abort(404)
     
     try:
-        conn = sqlite3.connect('database.db')
+        conn = sqlite3.connect(DB_PATH)
         conn.execute("DELETE FROM users WHERE username = ?", ('admin',))
         conn.commit()
         conn.close()
@@ -489,7 +492,7 @@ def logout():
     return resp
 
 def get_user_by_username(username):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     cur = conn.execute("SELECT id, username, password_hash, role FROM users WHERE username = ?", (username,))
     row = cur.fetchone()
     conn.close()
@@ -497,7 +500,7 @@ def get_user_by_username(username):
 
 def create_user(username, password, role='uploader'):
     pw = generate_password_hash(password)
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DB_PATH)
     conn.execute("INSERT INTO users (username, password_hash, role) VALUES (?,?,?)", (username, pw, role))
     conn.commit()
     conn.close()
@@ -509,7 +512,7 @@ try:
     
     if force_reset and admin:
         # Delete existing admin and recreate
-        conn = sqlite3.connect('database.db')
+        conn = sqlite3.connect(DB_PATH)
         conn.execute("DELETE FROM users WHERE username = ?", ('admin',))
         conn.commit()
         conn.close()
