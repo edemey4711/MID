@@ -86,12 +86,13 @@
     markers.push(marker);
     markersById[String(img[0])] = marker;
 
-    // Speichere Bildinfo für Sidebar
+    // Speichere Bildinfo für Sidebar (korrekte Thumbnail-URL oder Fallback)
+    const sidebarThumbUrl = thumbnail_path ? `/thumbnails/${thumbnail_path}` : `/uploads/${filepath}`;
     allImages.push({
       id: img[0],
       name: name,
       category: category,
-      thumbnail: thumbnail_path || filepath
+      thumbnailUrl: sidebarThumbUrl
     });
 
     // Nutze Thumbnail wenn vorhanden, sonst Vollbild
@@ -166,7 +167,7 @@
   function renderImageList(imagesToShow = allImages) {
     imageList.innerHTML = imagesToShow.map(img => `
       <div class="image-item" data-image-id="${img.id}">
-        <img src="/thumbnails/${img.thumbnail}" class="image-item-thumb" alt="${img.name}" loading="lazy">
+        <img src="${img.thumbnailUrl}" class="image-item-thumb" alt="${img.name}" loading="lazy">
         <div class="image-item-info">
           <div class="image-item-name">${img.name}</div>
           <span class="badge bg-warning text-dark">${img.category}</span>
