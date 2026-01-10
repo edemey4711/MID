@@ -80,9 +80,45 @@
   const imageList = document.getElementById("image-list");
   const sidebarSearch = document.getElementById("sidebar-search");
 
-  // Sidebar öffnen/schließen
-  if (sidebarToggle) sidebarToggle.addEventListener("click", () => sidebar?.classList.add("open"));
-  if (sidebarClose) sidebarClose.addEventListener("click", () => sidebar?.classList.remove("open"));
+  // Auf Mobile sollte die Sidebar initial versteckt sein
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile && sidebar) {
+    sidebar.classList.add("closed");
+    document.body.classList.add("sidebar-closed");
+  }
+
+  // Helper: Toggle Button aktualisieren
+  const updateToggleButtonVisibility = () => {
+    if (!sidebarToggle) return;
+    if (sidebar?.classList.contains("closed")) {
+      sidebarToggle.style.display = "flex";
+    } else {
+      sidebarToggle.style.display = "none";
+    }
+  };
+
+  // Sidebar öffnen
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener("click", () => {
+      sidebar?.classList.remove("closed");
+      sidebar?.classList.add("open");
+      document.body.classList.remove("sidebar-closed");
+      updateToggleButtonVisibility();
+    });
+  }
+
+  // Sidebar schließen (auf Mobile und Desktop)
+  if (sidebarClose) {
+    sidebarClose.addEventListener("click", () => {
+      sidebar?.classList.add("closed");
+      sidebar?.classList.remove("open");
+      document.body.classList.add("sidebar-closed");
+      updateToggleButtonVisibility();
+    });
+  }
+
+  // Initial visibility
+  updateToggleButtonVisibility();
 
   // Bilderliste populieren
   function renderImageList(imagesToShow = allImages) {
@@ -125,8 +161,6 @@
 
   // Initial render
   renderImageList();
-
-  const selectEl = document.getElementById("category-select");
   if (selectEl) {
     selectEl.addEventListener("change", function () {
       const selected = this.value;

@@ -10,13 +10,19 @@ body {
   position: absolute;
   top: 56px; /* Höhe der Navbar */
   bottom: 0;
-  left: 0;
+  left: 350px; /* Platz für Sidebar auf Desktop */
   right: 0;
-  width: 100%;
+  width: calc(100% - 350px);
   height: calc(100% - 56px);
   margin: 0;
   padding: 0;
   z-index: 1; /* Karte unter Navbar */
+  transition: left 0.3s ease, width 0.3s ease;
+}
+
+body.sidebar-closed #map {
+  left: 0;
+  width: 100%;
 }
 /* iPhone Safari Fix */
 body {
@@ -81,21 +87,20 @@ body {
 /* Sidebar Toggle Button */
 #sidebar-toggle {
   position: fixed;
-  top: 70px;
+  top: 200px;
   left: 12px;
   z-index: 1000;
   background: white;
   border: 2px solid #ffc800;
   border-radius: 8px;
-  width: 44px;
-  height: 44px;
+  padding: 10px 12px;
   cursor: pointer;
-  display: none;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
-  font-size: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #111;
 }
 
 #sidebar-toggle:hover {
@@ -106,7 +111,7 @@ body {
 /* Sidebar Container */
 #sidebar {
   position: fixed;
-  left: -350px;
+  left: 0;
   top: 56px;
   width: 350px;
   height: calc(100% - 56px);
@@ -118,6 +123,10 @@ body {
   flex-direction: column;
   transition: left 0.3s ease;
   overflow: hidden;
+}
+
+#sidebar.closed {
+  left: -350px;
 }
 
 #sidebar.open {
@@ -257,14 +266,20 @@ body {
   /* Sidebar als Overlay auf Mobile */
   #sidebar {
     width: 280px;
+    left: -280px; /* Hidden by default on mobile */
   }
 
-  #sidebar-toggle {
-    display: flex;
+  #sidebar.open {
+    left: 0;
+  }
+
+  #sidebar.closed {
+    left: -280px;
   }
 
   #map {
     left: 0;
+    width: 100%;
   }
 
   .filter-box {
@@ -276,7 +291,17 @@ body {
   #sidebar {
     width: 100%;
     max-width: 300px;
+    left: -300px;
   }
+
+  #sidebar.open {
+    left: 0;
+  }
+
+  #sidebar.closed {
+    left: -300px;
+  }
+}
 
   .sidebar-header h5 {
     font-size: 16px;
