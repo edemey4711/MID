@@ -396,6 +396,7 @@ def upload():
 
 
 # --- Map Route ---
+@app.route('/')
 @app.route('/map')
 def map():
     conn = sqlite3.connect(DB_PATH)
