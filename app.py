@@ -1,19 +1,16 @@
 import os
 import sqlite3
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, request, redirect, url_for, render_template, send_from_directory, session, flash, abort
 from werkzeug.utils import secure_filename
-from flask import send_from_directory
+from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from PIL import Image
 from PIL.ExifTags import TAGS, GPSTAGS
 import pillow_heif
 from PIL import ImageOps
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask import session, flash
 from flask_wtf.csrf import CSRFProtect
 from functools import wraps
-from flask import session, redirect, url_for, request, abort
 
 pillow_heif.register_heif_opener()
 
@@ -27,10 +24,14 @@ DB_PATH = '/data/database.db' if os.path.exists('/data') else 'database.db'
 # Upload folder: use /data/uploads on Railway (with volume), fallback to static/uploads for dev
 UPLOAD_FOLDER = '/data/uploads' if os.path.exists('/data') else 'static/uploads'
 
+# Thumbnail folder: use /data/thumbnails on Railway, fallback to static/thumbnails for dev
+THUMBNAIL_FOLDER = '/data/thumbnails' if os.path.exists('/data') else 'static/thumbnails'
+
 # Enable CSRF protection
 csrf = CSRFProtect(app)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['THUMBNAIL_FOLDER'] = THUMBNAIL_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16 MB max file size
 ALLOWED_CATEGORIES = ["Burg", "Fels", "Kirche", "Aussicht"]
 
@@ -139,6 +140,35 @@ def get_lat_lon(exif_data):
         return None, None
 
 
+def create_thumbnail(source_path, thumbnail_path, size=(400, 400)):
+    """
+    Erstellt ein Thumbnail für ein Bild.
+    
+    Args:
+        source_path: Pfad zum Originalbild
+        thumbnail_path: Pfad wo das Thumbnail gespeichert werden soll
+        size: Maximale Größe als Tuple (Breite, Höhe)
+    
+    Returns:
+        bool: True bei Erfolg, False bei Fehler
+    """
+    try:
+        with Image.open(source_path) as img:
+            # Korrigiere Orientierung basierend auf EXIF
+            img = ImageOps.exif_transpose(img)
+            
+            # Erstelle Thumbnail (behält Seitenverhältnis bei)
+            img.thumbnail(size, Image.Resampling.LANCZOS)
+            
+            # Speichere als JPEG (auch wenn Original PNG/WebP war)
+            img.convert('RGB').save(thumbnail_path, 'JPEG', quality=85, optimize=True)
+            
+        return True
+    except Exception as e:
+        app.logger.error(f"Fehler beim Erstellen des Thumbnails für {source_path}: {e}")
+        return False
+
+
 # --- Datenbank initialisieren (erzeugt oder migriert bei Bedarf) ---
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -152,6 +182,7 @@ def init_db():
       description TEXT,
       category TEXT,
       filepath TEXT NOT NULL,
+      thumbnail_path TEXT,
       latitude REAL,
       longitude REAL,
       upload_date TEXT,
@@ -175,6 +206,7 @@ def init_db():
     # Falls die Tabelle aus einer älteren Version vorhanden ist, fügen wir fehlende Spalten hinzu
     existing_cols = [row[1] for row in c.execute("PRAGMA table_info(images)").fetchall()]
     needed = {
+        "thumbnail_path": "TEXT",
         "latitude": "REAL",
         "longitude": "REAL",
         "upload_date": "TEXT",
@@ -202,6 +234,13 @@ init_db()
 def uploaded_file(filename):
     """Serve uploaded images from UPLOAD_FOLDER (which may be in /data/uploads on Railway)"""
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+# --- Serve thumbnails ---
+@app.route('/thumbnails/<filename>')
+def thumbnail_file(filename):
+    """Serve thumbnail images from THUMBNAIL_FOLDER"""
+    return send_from_directory(app.config['THUMBNAIL_FOLDER'], filename)
 
 
 # --- Login-Logout Hilfsfunktionen ---
@@ -303,7 +342,8 @@ def upload():
                     try:
                         exif_date, exif_time = dt.split(" ")
                         exif_date = exif_date.replace(":", "-")  # schöneres Format
-                    except:
+                    except Exception as e:
+                        app.logger.warning(f"Fehler beim Parsen des EXIF-Datums: {e}")
                         exif_date = None
                         exif_time = None
 
@@ -322,15 +362,29 @@ def upload():
             upload_date = now.strftime("%Y-%m-%d")
             upload_time = now.strftime("%H:%M:%S")
 
+            # --- Thumbnail erstellen ---
+            os.makedirs(app.config['THUMBNAIL_FOLDER'], exist_ok=True)
+            
+            # Thumbnail bekommt denselben Namen wie das Original (aber als .jpg)
+            thumb_filename = os.path.splitext(filename)[0] + '_thumb.jpg'
+            thumb_path = os.path.join(app.config['THUMBNAIL_FOLDER'], thumb_filename)
+            
+            # Erstelle Thumbnail
+            thumbnail_created = create_thumbnail(path, thumb_path)
+            
+            # Wenn Thumbnail-Erstellung fehlschlägt, setze None
+            if not thumbnail_created:
+                thumb_filename = None
+
             # --- In DB speichern (nur Dateiname, nicht voller Pfad) ---
             conn = sqlite3.connect(DB_PATH)
             c = conn.cursor()
             c.execute("""
                 INSERT INTO images 
-                (name, description, category, filepath, latitude, longitude,
+                (name, description, category, filepath, thumbnail_path, latitude, longitude,
                  upload_date, upload_time, exif_date, exif_time)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (name, description, category, filename, lat, lon,
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (name, description, category, filename, thumb_filename, lat, lon,
                   upload_date, upload_time, exif_date, exif_time))
             conn.commit()
             conn.close()
@@ -355,7 +409,7 @@ def map():
 def gallery():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images")
+    c.execute("SELECT id, name, description, category, filepath, thumbnail_path, latitude, longitude FROM images")
     images = c.fetchall()
     conn.close()
     return render_template('gallery.html', images=images, title="Galerie")
@@ -401,8 +455,8 @@ def delete(image_id):
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
 
-    # Bilddaten laden
-    c.execute("SELECT filepath FROM images WHERE id = ?", (image_id,))
+    # Bilddaten laden (inkl. Thumbnail-Pfad)
+    c.execute("SELECT filepath, thumbnail_path FROM images WHERE id = ?", (image_id,))
     row = c.fetchone()
 
     if not row:
@@ -410,15 +464,25 @@ def delete(image_id):
         return redirect(url_for('gallery'))
 
     filepath = row[0]
+    thumbnail_path = row[1]
 
-    # Datei löschen, falls vorhanden
+    # Hauptdatei löschen, falls vorhanden
     if filepath:
         full_path = os.path.join(app.config['UPLOAD_FOLDER'], filepath)
         if os.path.exists(full_path):
             try:
                 os.remove(full_path)
-            except:
-                pass
+            except Exception as e:
+                app.logger.warning(f"Fehler beim Löschen der Datei {filepath}: {e}")
+
+    # Thumbnail löschen, falls vorhanden
+    if thumbnail_path:
+        thumb_full_path = os.path.join(app.config['THUMBNAIL_FOLDER'], thumbnail_path)
+        if os.path.exists(thumb_full_path):
+            try:
+                os.remove(thumb_full_path)
+            except Exception as e:
+                app.logger.warning(f"Fehler beim Löschen des Thumbnails {thumbnail_path}: {e}")
 
     # DB-Eintrag löschen
     c.execute("DELETE FROM images WHERE id = ?", (image_id,))
