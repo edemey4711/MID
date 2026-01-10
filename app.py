@@ -588,20 +588,28 @@ try:
     force_reset = os.environ.get('RESET_ADMIN_PASSWORD', 'false').lower() == 'true'
     admin = get_user_by_username('admin')
     
-    if force_reset and admin:
-        # Delete existing admin and recreate
-        conn = sqlite3.connect(DB_PATH)
-        conn.execute("DELETE FROM users WHERE username = ?", ('admin',))
-        conn.commit()
-        conn.close()
-        app.logger.info("Existing admin user deleted for reset")
-        admin = None
+    # Prüfe ob Admin mit korrektem Passwort existiert
+    admin_password_correct = False
+    if admin:
+        admin_password_correct = check_password_hash(admin['password_hash'], 'admin123')
     
-    if not admin:
+    # Wenn kein Admin existiert oder Passwort falsch ist, neu erstellen
+    if force_reset or not admin or not admin_password_correct:
+        if admin:
+            # Delete existing (wrong password) admin
+            conn = sqlite3.connect(DB_PATH)
+            conn.execute("DELETE FROM users WHERE username = ?", ('admin',))
+            conn.commit()
+            conn.close()
+            if not admin_password_correct:
+                app.logger.warning("Admin-User hatte falsches Passwort, wird neu erstellt")
+            else:
+                app.logger.info("Existing admin user deleted for reset")
+        
         create_user('admin', 'admin123', 'admin')
-        app.logger.info("Default admin user created: admin/admin123")
+        app.logger.info("✓ Default admin user created/reset: admin/admin123")
 except Exception as e:
-    app.logger.warning(f"ensure_admin_user: {e}")
+    app.logger.error(f"Error ensuring admin user: {e}")
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
