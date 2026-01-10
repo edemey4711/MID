@@ -2,6 +2,24 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/map.css') }}">
 {% endblock %} {% block content %}
 
+<!-- Toggle Sidebar Button (Mobile) -->
+<button id="sidebar-toggle" class="sidebar-toggle" title="Bilderliste">
+  <i class="bi bi-list"></i>
+</button>
+
+<!-- Sidebar mit Bildliste -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <h3>Bilder</h3>
+    <button id="sidebar-close" class="sidebar-close" title="Schließen">✕</button>
+  </div>
+  <div class="sidebar-search">
+    <input type="text" id="sidebar-search" class="form-control" placeholder="Suchen...">
+  </div>
+  <div id="image-list" class="image-list"></div>
+</div>
+
+<!-- Filter -->
 <div id="category-filter-box" class="filter-box">
   <select id="category-select" class="pill-select">
     <option value="Alle">Alle Kategorien</option>
@@ -11,7 +29,6 @@
     <option value="Aussicht">Aussicht</option>
   </select>
 </div>
-
 
 <div id="map"></div>
 

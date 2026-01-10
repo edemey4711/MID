@@ -25,6 +25,7 @@
 
   const markers = [];
   const markersById = {};
+  let allImages = [];
 
   images.forEach((img) => {
     const name = img[1] || "";
@@ -42,9 +43,19 @@
 
     const marker = L.marker([lat, lon], { icon });
     marker.category = category;
+    marker.name = name;
+    marker.imageId = img[0];
     markerCluster.addLayer(marker);
     markers.push(marker);
     markersById[String(img[0])] = marker;
+
+    // Speichere Bildinfo für Sidebar
+    allImages.push({
+      id: img[0],
+      name: name,
+      category: category,
+      thumbnail: thumbnail_path || filepath
+    });
 
     // Nutze Thumbnail wenn vorhanden, sonst Vollbild
     const image_src = thumbnail_path ? `/thumbnails/${thumbnail_path}` : `/uploads/${filepath}`;
@@ -61,6 +72,59 @@
   });
 
   map.addLayer(markerCluster);
+
+  // --- SIDEBAR FUNKTIONALITÄT ---
+  const sidebar = document.getElementById("sidebar");
+  const sidebarToggle = document.getElementById("sidebar-toggle");
+  const sidebarClose = document.getElementById("sidebar-close");
+  const imageList = document.getElementById("image-list");
+  const sidebarSearch = document.getElementById("sidebar-search");
+
+  // Sidebar öffnen/schließen
+  if (sidebarToggle) sidebarToggle.addEventListener("click", () => sidebar?.classList.add("open"));
+  if (sidebarClose) sidebarClose.addEventListener("click", () => sidebar?.classList.remove("open"));
+
+  // Bilderliste populieren
+  function renderImageList(imagesToShow = allImages) {
+    imageList.innerHTML = imagesToShow.map(img => `
+      <div class="image-item" data-image-id="${img.id}">
+        <img src="/thumbnails/${img.thumbnail}" class="image-item-thumb" alt="${img.name}" loading="lazy">
+        <div class="image-item-info">
+          <div class="image-item-name">${img.name}</div>
+          <span class="badge bg-warning text-dark">${img.category}</span>
+        </div>
+      </div>
+    `).join("");
+
+    // Click-Handler für Bilderliste
+    document.querySelectorAll(".image-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const imageId = item.getAttribute("data-image-id");
+        const marker = markersById[imageId];
+        if (marker) {
+          markerCluster.zoomToShowLayer(marker, () => {
+            map.setView(marker.getLatLng(), 15);
+            marker.openPopup();
+          });
+          sidebar?.classList.remove("open");
+        }
+      });
+    });
+  }
+
+  // Suche in Bilderliste
+  if (sidebarSearch) {
+    sidebarSearch.addEventListener("input", (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = query
+        ? allImages.filter(img => img.name.toLowerCase().includes(query))
+        : allImages;
+      renderImageList(filtered);
+    });
+  }
+
+  // Initial render
+  renderImageList();
 
   const selectEl = document.getElementById("category-select");
   if (selectEl) {
