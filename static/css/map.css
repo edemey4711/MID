@@ -1,32 +1,30 @@
 html,
 body {
   height: 100%;
+  width: 100%;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 /* Karte soll den gesamten Bildschirm einnehmen */
 #map {
-  position: absolute;
+  position: fixed;
   top: 56px; /* Höhe der Navbar */
   bottom: 0;
-  left: 350px; /* Platz für Sidebar auf Desktop */
+  left: 0; /* Initial volle Breite */
   right: 0;
-  width: calc(100% - 350px);
-  height: calc(100% - 56px);
-  margin: 0;
-  padding: 0;
-  z-index: 1; /* Karte unter Navbar */
-  transition: left 0.3s ease, width 0.3s ease;
+  z-index: 1;
+  transition: left 0.3s ease;
+}
+
+/* Wenn Sidebar offen ist, Platz lassen */
+body.sidebar-open #map {
+  left: 350px;
 }
 
 body.sidebar-closed #map {
   left: 0;
-  width: 100%;
-}
-/* iPhone Safari Fix */
-body {
-  overflow: hidden;
 }
 
 /* Schwebende Animation */
@@ -301,9 +299,38 @@ body {
   #sidebar.closed {
     left: -300px;
   }
-}
 
   .sidebar-header h5 {
     font-size: 16px;
   }
+}
+
+/* Leaflet Layer Control Styling */
+.leaflet-control-layers {
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  font-family: Arial, sans-serif;
+}
+
+.leaflet-control-layers-list {
+  margin: 0;
+  padding: 0;
+}
+
+.leaflet-control-layers label {
+  display: block;
+  margin: 5px 0;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.leaflet-control-layers input {
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.leaflet-control-layers-toggle {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath d='M5 8h20v2H5zm0 6h20v2H5zm0 6h20v2H5z' fill='%23ffc800'/%3e%3c/svg%3e");
 }

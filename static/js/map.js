@@ -21,7 +21,44 @@
   const map = L.map("map").setView([51.1657, 10.4515], 6);
   const markerCluster = L.markerClusterGroup();
 
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+  // --- Verschiedene Kartenlagen (Basemaps) ---
+  const osmLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap contributors',
+    errorTileUrl: ''
+  });
+  
+  const topoLayer = L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png", {
+    maxZoom: 17,
+    attribution: '© OpenTopoMap contributors',
+    errorTileUrl: ''
+  });
+  
+  const satelliteLayer = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19,
+    attribution: '© Esri',
+    errorTileUrl: ''
+  });
+
+  // Standardlayer beim Start
+  osmLayer.addTo(map);
+
+  // Layer-Control hinzufügen
+  const baseLayers = {
+    "🗺️ OpenStreetMap": osmLayer,
+    "🏔️ Topographie": topoLayer,
+    "🛰️ Satellit": satelliteLayer
+  };
+
+  const layerControl = L.control.layers(baseLayers, null, {
+    position: 'topright',
+    collapsed: true
+  }).addTo(map);
+
+  // Debug-Logging für Layer-Wechsel
+  map.on('baselayerchange', function(e) {
+    console.log('Layer gewechselt zu: ' + e.name);
+  });
 
   const markers = [];
   const markersById = {};
@@ -80,9 +117,8 @@
   const imageList = document.getElementById("image-list");
   const sidebarSearch = document.getElementById("sidebar-search");
 
-  // Auf Mobile sollte die Sidebar initial versteckt sein
-  const isMobile = window.innerWidth <= 768;
-  if (isMobile && sidebar) {
+  // Sidebar initial immer geschlossen (Desktop und Mobile)
+  if (sidebar) {
     sidebar.classList.add("closed");
     document.body.classList.add("sidebar-closed");
   }
@@ -103,7 +139,10 @@
       sidebar?.classList.remove("closed");
       sidebar?.classList.add("open");
       document.body.classList.remove("sidebar-closed");
+      document.body.classList.add("sidebar-open");
       updateToggleButtonVisibility();
+      // Leaflet Map nach CSS-Transition neu berechnen
+      setTimeout(() => map.invalidateSize(), 300);
     });
   }
 
@@ -113,7 +152,10 @@
       sidebar?.classList.add("closed");
       sidebar?.classList.remove("open");
       document.body.classList.add("sidebar-closed");
+      document.body.classList.remove("sidebar-open");
       updateToggleButtonVisibility();
+      // Leaflet Map nach CSS-Transition neu berechnen
+      setTimeout(() => map.invalidateSize(), 300);
     });
   }
 

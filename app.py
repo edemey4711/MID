@@ -50,7 +50,7 @@ def _build_csp():
         "default-src 'self'; "
         "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
         "style-src 'self' https://cdn.jsdelivr.net https://unpkg.com; "
-        "img-src 'self' data: blob: https://*.tile.openstreetmap.org; "
+        "img-src 'self' data: blob: https://*.tile.openstreetmap.org https://*.tile.opentopomap.org https://server.arcgisonline.com; "
         "font-src 'self' data:; "
         "connect-src 'self'; "
         "object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
