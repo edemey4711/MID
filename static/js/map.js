@@ -31,8 +31,9 @@
     const description = img[2] || "";
     const category = img[3] || "";
     const filepath = img[4] || "";
-    let lat = img[5];
-    let lon = img[6];
+    const thumbnail_path = img[5] || "";
+    let lat = img[6];
+    let lon = img[7];
 
     if (!lat || isNaN(lat)) lat = 51.1657;
     if (!lon || isNaN(lon)) lon = 10.4515;
@@ -45,12 +46,15 @@
     markers.push(marker);
     markersById[String(img[0])] = marker;
 
+    // Nutze Thumbnail wenn vorhanden, sonst Vollbild
+    const image_src = thumbnail_path ? `/thumbnails/${thumbnail_path}` : `/uploads/${filepath}`;
+
     marker.bindPopup(`
       <div style="max-width:200px">
           <h5 class="fw-bold mb-1">${name}</h5>
           <span class="badge bg-warning text-dark mb-2">${category}</span>
           <p>${description}</p>
-          <img src="/uploads/${filepath}" class="img-fluid rounded mb-2">
+          <img src="${image_src}" class="img-fluid rounded mb-2" loading="lazy" alt="${name}">
           <a href="/detail/${img[0]}" class="btn btn-warning btn-sm w-100">Details ansehen</a>
       </div>
     `);

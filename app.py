@@ -401,7 +401,7 @@ def upload():
 def map():
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
-    c.execute("SELECT id, name, description, category, filepath, latitude, longitude FROM images")
+    c.execute("SELECT id, name, description, category, filepath, thumbnail_path, latitude, longitude FROM images")
     images = c.fetchall()
     conn.close()
     return render_template('map.html', images=images, title="Karte")
