@@ -181,11 +181,34 @@
         const imageId = item.getAttribute("data-image-id");
         const marker = markersById[imageId];
         if (marker) {
-          markerCluster.zoomToShowLayer(marker, () => {
-            map.setView(marker.getLatLng(), 15);
-            marker.openPopup();
-          });
-          sidebar?.classList.remove("open");
+          // Sidebar erst schließen
+          if (sidebar) {
+            sidebar.classList.add("closed");
+            sidebar.classList.remove("open");
+            document.body.classList.add("sidebar-closed");
+            document.body.classList.remove("sidebar-open");
+            updateToggleButtonVisibility();
+          }
+          
+          // Kurz warten bis Sidebar-Animation abgeschlossen ist
+          setTimeout(() => {
+            map.invalidateSize();
+            markerCluster.zoomToShowLayer(marker, () => {
+              // Auf Mobile: Marker leicht nach links versetzen für bessere Sichtbarkeit
+              const isMobile = window.innerWidth <= 768;
+              if (isMobile) {
+                const targetLatLng = marker.getLatLng();
+                const point = map.project(targetLatLng, 15);
+                // Verschiebe den Punkt um 80px nach rechts, damit der Marker mittig im sichtbaren Bereich ist
+                point.x += 80;
+                const newCenter = map.unproject(point, 15);
+                map.setView(newCenter, 15);
+              } else {
+                map.setView(marker.getLatLng(), 15);
+              }
+              marker.openPopup();
+            });
+          }, 350); // Warte auf CSS-Transition (300ms) + Buffer
         }
       });
     });
