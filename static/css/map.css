@@ -263,8 +263,9 @@ body.sidebar-closed #map {
 @media (max-width: 768px) {
   /* Sidebar als Overlay auf Mobile */
   #sidebar {
-    width: 280px;
-    left: -280px; /* Hidden by default on mobile */
+    width: 85%;
+    max-width: 350px;
+    left: -100%; /* Komplett versteckt */
   }
 
   #sidebar.open {
@@ -272,36 +273,51 @@ body.sidebar-closed #map {
   }
 
   #sidebar.closed {
-    left: -280px;
+    left: -100%;
   }
 
+  /* Karte immer volle Breite auf Mobile */
   #map {
-    left: 0;
-    width: 100%;
+    left: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* Keine Map-Verschiebung wenn Sidebar offen */
+  body.sidebar-open #map {
+    left: 0 !important;
   }
 
   .filter-box {
-    top: 110px;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+  }
+  
+  .pill-select {
+    font-size: 13px;
+    padding: 8px 35px 8px 14px;
+  }
+  
+  #sidebar-toggle {
+    top: 120px;
+    left: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
   }
 }
 
 @media (max-width: 480px) {
   #sidebar {
-    width: 100%;
-    max-width: 300px;
-    left: -300px;
+    width: 90%;
+    max-width: none;
   }
 
-  #sidebar.open {
-    left: 0;
-  }
-
-  #sidebar.closed {
-    left: -300px;
-  }
-
-  .sidebar-header h5 {
+  .sidebar-header h3 {
     font-size: 16px;
+  }
+  
+  .filter-box {
+    top: 70px;
   }
 }
 
