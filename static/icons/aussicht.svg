@@ -1,19 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <!-- Hintergrund-Kreis im Stil von burg.svg -->
+  <!-- Hintergrund-Kreis -->
   <circle cx="32" cy="32" r="30" fill="#FFC800" stroke="#111111" stroke-width="3"/>
 
-  <!-- Sonne -->
-  <circle cx="45" cy="20" r="5" fill="#FFC800" stroke="#111111" stroke-width="2"/>
-
-  <!-- Berge / Aussicht-Silhouette -->
-  <path d="M14 44 L26 26 L34 38 L42 28 L52 44 Z" fill="#111111"/>
-  <path d="M22 44 L30 34 L36 44 Z" fill="#FFC800" stroke="#111111" stroke-width="2"/>
-
-  <!-- Fernrohr-Silhouette für 'Aussicht' -->
-  <g transform="translate(18 20)" fill="#111111">
-    <rect x="0" y="8" width="6" height="4" rx="1"/>
-    <rect x="6" y="8" width="6" height="4" rx="1"/>
-    <rect x="3" y="12" width="6" height="3" rx="1"/>
-    <rect x="4" y="15" width="4" height="3" rx="1"/>
-  </g>
+  <!-- Linke Röhre (trapezförmig, verjüngt sich nach oben) -->
+  <path d="M 14 38 L 18 20 L 24 20 L 22 38 Z" fill="#111111" stroke="#111111" stroke-width="2"/>
+  
+  <!-- Rechte Röhre (trapezförmig, verjüngt sich nach oben) -->
+  <path d="M 40 38 L 42 20 L 48 20 L 50 38 Z" fill="#111111" stroke="#111111" stroke-width="2"/>
+  
+  <!-- Mittlere Brücke/Verbindung (verbindet beide Röhren über die ganze Länge) -->
+  <path d="M 24 20 Q 26 18, 32 18 Q 38 18, 42 20 L 40 38 Q 36 40, 32 40 Q 28 40, 24 38 Z" fill="#111111"/>
+  
+  <!-- Linkes Objektiv (großer Kreis) -->
+  <circle cx="18" cy="38" r="8" fill="#111111" stroke="#111111" stroke-width="3"/>
+  <circle cx="18" cy="38" r="5.5" fill="white"/>
+  
+  <!-- Rechtes Objektiv (großer Kreis) -->
+  <circle cx="46" cy="38" r="8" fill="#111111" stroke="#111111" stroke-width="3"/>
+  <circle cx="46" cy="38" r="5.5" fill="white"/>
+  
+  <!-- Fokussierrad in der Mitte der Brücke -->
+  <circle cx="32" cy="29" r="3.5" fill="#FFC800" stroke="#111111" stroke-width="2"/>
 </svg>
