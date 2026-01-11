@@ -227,6 +227,9 @@
 
   // Initial render
   renderImageList();
+  
+  // Kategorie-Filter
+  const selectEl = document.getElementById('category-select');
   if (selectEl) {
     selectEl.addEventListener("change", function () {
       const selected = this.value;
